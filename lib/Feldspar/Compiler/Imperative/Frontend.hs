@@ -33,208 +33,208 @@ module Feldspar.Compiler.Imperative.Frontend where
 
 import Data.Monoid (Monoid(..))
 
-import Feldspar.Compiler.Imperative.Representation
+--import Feldspar.Compiler.Imperative.Representation
 
 import Feldspar.Range
 import Feldspar.Core.Types (Length)
 
-instance Monoid (Program t)
-  where
-    mempty                              = Empty
-    mappend Empty     p                 = p
-    mappend p        Empty              = p
-    mappend (Sequence pa) (Sequence pb) = Sequence (mappend pa pb)
-    mappend pa pb                       = Sequence [mappend pa pb]
-
-instance Monoid (Block t)
-  where
-    mempty                              = Block [] Empty
-    mappend (Block da pa) (Block db pb) = Block (mappend da db) (mappend pa pb)
-
-toBlock :: Program () -> Block ()
-toBlock (BlockProgram b) = b
-toBlock p                = Block [] p
-
-toProg :: Block () -> Program ()
-toProg (Block [] p) = p
-toProg e = BlockProgram e
-
-setLength :: Expression () -> Expression () -> Program ()
-setLength arr len = Assign arr $ fun (typeof arr) "setLength" [arr, sz, len]
-  where
-    sz | isArray t' = binop (NumType Unsigned S32) "-" (litI32 0) t
-       | otherwise  = t
-    t = SizeOf (Left t')
-    t' = go $ typeof arr
-    go (ArrayType _ e) = e
-    go (Pointer t) = go t
-    go _               = error $ "Feldspar.Compiler.Imperative.Frontend.setLength: invalid type of array " ++ show arr ++ "::" ++ show (typeof arr)
-
--- | Copies expressions into a destination. If the destination is
--- a non-scalar the arguments are appended to the destination.
-copyProg :: Expression ()-> [Expression ()] -> Program ()
-copyProg _ [] = error "copyProg: missing source parameter."
-copyProg outExp inExp
-    | outExp == head inExp
-      && null (tail inExp) = Empty
-    | otherwise            = call "copy" (Out outExp:map In inExp)
-
-initArray :: Expression () -> Expression () -> Program ()
-initArray arr len = Assign arr $ fun (typeof arr) "initArray" [arr, sz, len]
-  where
-    sz | isArray t' = binop (NumType Unsigned S32) "-" (litI32 0) t
-       | otherwise  = t
-    t = SizeOf (Left t')
-    t' = go $ typeof arr
-    go (ArrayType _ e) = e
-    go (Pointer t) = go t
-    go _               = error $ "Feldspar.Compiler.Imperative.Frontend.initArray: invalid type of array " ++ show arr ++ "::" ++ show (typeof arr)
-
-freeArray :: Variable () -> Program ()
-freeArray arr = call "freeArray" [Out $ AddrOf $ varToExpr arr]
-
-freeArrays :: [Declaration ()] -> [Program ()]
-freeArrays defs = map freeArray arrays
-  where
-    arrays = filter (isArray . typeof) $ map dVar defs
-
-arrayLength :: Expression () -> Expression ()
-arrayLength arr
-  | Just r <- chaseArray arr = litI32 $ fromIntegral (upperBound r)
-  | otherwise = FunctionCall (Function "getLength" (NumType Unsigned S32) Prefix) [AddrOf arr]
-
-chaseArray :: Expression t-> Maybe (Range Length)
-chaseArray e = go e []  -- TODO: Extend to handle x.member1.member2
-  where go :: Expression t -> [String] -> Maybe (Range Length)
-        go (ConstExpr (ArrayConst l)) [] = Just (singletonRange $ fromIntegral $ length l)
-        go (VarExpr (Variable (ArrayType r _) _)) [] | isSingleton r = Just r
-        go (VarExpr (Variable (NativeArray (Just r) _) _)) [] = Just (singletonRange r)
-        go (StructField e s) ss = go e (s:ss)
-        go (AddrOf e) ss = go e ss
-        go (VarExpr (Variable (StructType _ fields) _)) (s:_)
-          | Just (ArrayType r _) <- lookup s fields
-          , isSingleton r = Just r
-          | Just (NativeArray (Just r) _) <- lookup s fields
-          = Just (singletonRange r)
-        go _ _ = Nothing
-
-iVarInit :: Expression () -> Program ()
-iVarInit var = call "ivar_init" [Out var]
-
-iVarGet :: Expression () -> Expression () -> Program ()
-iVarGet loc ivar 
-    | isArray typ   = call "ivar_get_array" [Out $ AddrOf loc, In ivar]
-    | otherwise     = call "ivar_get" [TypeParameter typ, Out loc, In ivar]
-      where
-        typ = typeof loc
-
-iVarPut :: Expression () -> Expression () -> Program ()
-iVarPut ivar msg
-    | isArray typ   = call "ivar_put_array" [In ivar, Out $ AddrOf msg]
-    | otherwise     = call "ivar_put" [TypeParameter typ, In ivar, Out msg]
-      where
-        typ = typeof msg
-
-iVarDestroy :: Variable () -> Program ()
-iVarDestroy v = call "ivar_destroy" [Out $ AddrOf $ varToExpr v]
-
-freeIVars :: [Declaration ()] -> [Program ()]
-freeIVars defs = map iVarDestroy ivars
-  where
-    ivars = filter (isIVar . typeof) $ map dVar defs
-
-spawn :: String -> [Variable ()] -> Program ()
-spawn taskName vs = call spawnName allParams
-  where
-    spawnName = "spawn" ++ show (length vs)
-    taskParam = FunParameter taskName
-    typeParams = map (TypeParameter . fixArray . typeof) vs
-      where fixArray (Pointer t@ArrayType{}) = t
-            fixArray t                       = t
-    varParams = map (\v -> In $ VarExpr (Variable (typeof v) (vName v))) vs
-    allParams = taskParam : concat (zipWith (\a b -> [a,b]) typeParams varParams)
-
-run :: String -> [Variable ()] -> Program ()
-run taskName vs = call runName allParams
-  where
-    runName = "run" ++ show (length vs)
-    typeParams = map (TypeParameter . typeof) vs
-    taskParam = FunParameter taskName
-    allParams = taskParam : typeParams
-
-intWidth :: Type -> Maybe Integer
-intWidth (NumType _ S8)  = Just 8
-intWidth (NumType _ S16) = Just 16
-intWidth (NumType _ S32) = Just 32
-intWidth (NumType _ S40) = Just 40
-intWidth (NumType _ S64) = Just 64
-intWidth _               = Nothing
-
-intSigned :: Type -> Maybe Bool
-intSigned (NumType Unsigned _) = Just False
-intSigned (NumType Signed _)   = Just True
-intSigned _                    = Nothing
-
-litF :: Double -> Expression t
-litF n = ConstExpr (FloatConst n)
-
-litB :: Bool -> Expression ()
-litB b = ConstExpr (BoolConst b)
-
-litC :: Constant () -> Constant () -> Expression ()
-litC r i = ConstExpr (ComplexConst r i)
-
-litI :: Type -> Integer -> Expression ()
-litI t n = ConstExpr (IntConst n t)
-
-litI32 :: Integer -> Expression ()
-litI32 = litI (NumType Unsigned S32)
-
-isArray :: Type -> Bool
-isArray ArrayType{} = True
-isArray (Pointer t) = isArray t
-isArray _ = False
-
-isNativeArray :: Type -> Bool
-isNativeArray NativeArray{} = True
-isNativeArray (Pointer t)   = isNativeArray t
-isNativeArray _             = False
-
-isIVar :: Type -> Bool
-isIVar IVarType{} = True
-isIVar _              = False
-
-dVar :: Declaration () -> Variable ()
-dVar (Declaration v _)    = v
-
-vName :: Variable t -> String
-vName Variable{..} = varName
-
-lName :: Expression t -> String
-lName (VarExpr v@Variable{}) = vName v
-lName (ArrayElem e _)        = lName e
-lName (StructField e _)      = lName e
-lName (AddrOf e)             = lName e
-lName e                      = error $ "Feldspar.Compiler.Imperative.Frontend.lName: invalid location: " ++ show e
-
-varToExpr :: Variable t -> Expression t
-varToExpr = VarExpr
-
-binop :: Type -> String -> Expression () -> Expression () -> Expression ()
-binop t n e1 e2 = fun' Infix t n [e1, e2]
-
-fun :: Type -> String -> [Expression ()] -> Expression ()
-fun = fun' Prefix
-
-fun' :: FunctionMode -> Type -> String -> [Expression ()] -> Expression ()
-fun' m t n = FunctionCall (Function n t m)
-
-call :: String -> [ActualParameter ()] -> Program ()
-call = ProcedureCall
-
-for :: String -> Expression () -> Int -> Block () -> Program ()
-for _ _ _ (Block [] (Sequence [Empty])) = Empty
-for s e i b = ParLoop (Variable (NumType Unsigned S32) s) e i b
-
-while :: Block () -> Expression () -> Block () -> Program ()
-while p e b = SeqLoop e p b
+--instance Monoid (Program t)
+--  where
+--    mempty                              = Empty
+--    mappend Empty     p                 = p
+--    mappend p        Empty              = p
+--    mappend (Sequence pa) (Sequence pb) = Sequence (mappend pa pb)
+--    mappend pa pb                       = Sequence [mappend pa pb]
+--
+--instance Monoid (Block t)
+--  where
+--    mempty                              = Block [] Empty
+--    mappend (Block da pa) (Block db pb) = Block (mappend da db) (mappend pa pb)
+--
+--toBlock :: Program () -> Block ()
+--toBlock (BlockProgram b) = b
+--toBlock p                = Block [] p
+--
+--toProg :: Block () -> Program ()
+--toProg (Block [] p) = p
+--toProg e = BlockProgram e
+--
+--setLength :: Expression () -> Expression () -> Program ()
+--setLength arr len = Assign arr $ fun (typeof arr) "setLength" [arr, sz, len]
+--  where
+--    sz | isArray t' = binop (NumType Unsigned S32) "-" (litI32 0) t
+--       | otherwise  = t
+--    t = SizeOf (Left t')
+--    t' = go $ typeof arr
+--    go (ArrayType _ e) = e
+--    go (Pointer t) = go t
+--    go _               = error $ "Feldspar.Compiler.Imperative.Frontend.setLength: invalid type of array " ++ show arr ++ "::" ++ show (typeof arr)
+--
+---- | Copies expressions into a destination. If the destination is
+---- a non-scalar the arguments are appended to the destination.
+--copyProg :: Expression ()-> [Expression ()] -> Program ()
+--copyProg _ [] = error "copyProg: missing source parameter."
+--copyProg outExp inExp
+--    | outExp == head inExp
+--      && null (tail inExp) = Empty
+--    | otherwise            = call "copy" (Out outExp:map In inExp)
+--
+--initArray :: Expression () -> Expression () -> Program ()
+--initArray arr len = Assign arr $ fun (typeof arr) "initArray" [arr, sz, len]
+--  where
+--    sz | isArray t' = binop (NumType Unsigned S32) "-" (litI32 0) t
+--       | otherwise  = t
+--    t = SizeOf (Left t')
+--    t' = go $ typeof arr
+--    go (ArrayType _ e) = e
+--    go (Pointer t) = go t
+--    go _               = error $ "Feldspar.Compiler.Imperative.Frontend.initArray: invalid type of array " ++ show arr ++ "::" ++ show (typeof arr)
+--
+--freeArray :: Variable () -> Program ()
+--freeArray arr = call "freeArray" [Out $ AddrOf $ varToExpr arr]
+--
+--freeArrays :: [Declaration ()] -> [Program ()]
+--freeArrays defs = map freeArray arrays
+--  where
+--    arrays = filter (isArray . typeof) $ map dVar defs
+--
+--arrayLength :: Expression () -> Expression ()
+--arrayLength arr
+--  | Just r <- chaseArray arr = litI32 $ fromIntegral (upperBound r)
+--  | otherwise = FunctionCall (Function "getLength" (NumType Unsigned S32) Prefix) [AddrOf arr]
+--
+--chaseArray :: Expression t-> Maybe (Range Length)
+--chaseArray e = go e []  -- TODO: Extend to handle x.member1.member2
+--  where go :: Expression t -> [String] -> Maybe (Range Length)
+--        go (ConstExpr (ArrayConst l)) [] = Just (singletonRange $ fromIntegral $ length l)
+--        go (VarExpr (Variable (ArrayType r _) _)) [] | isSingleton r = Just r
+--        go (VarExpr (Variable (NativeArray (Just r) _) _)) [] = Just (singletonRange r)
+--        go (StructField e s) ss = go e (s:ss)
+--        go (AddrOf e) ss = go e ss
+--        go (VarExpr (Variable (StructType _ fields) _)) (s:_)
+--          | Just (ArrayType r _) <- lookup s fields
+--          , isSingleton r = Just r
+--          | Just (NativeArray (Just r) _) <- lookup s fields
+--          = Just (singletonRange r)
+--        go _ _ = Nothing
+--
+--iVarInit :: Expression () -> Program ()
+--iVarInit var = call "ivar_init" [Out var]
+--
+--iVarGet :: Expression () -> Expression () -> Program ()
+--iVarGet loc ivar 
+--    | isArray typ   = call "ivar_get_array" [Out $ AddrOf loc, In ivar]
+--    | otherwise     = call "ivar_get" [TypeParameter typ, Out loc, In ivar]
+--      where
+--        typ = typeof loc
+--
+--iVarPut :: Expression () -> Expression () -> Program ()
+--iVarPut ivar msg
+--    | isArray typ   = call "ivar_put_array" [In ivar, Out $ AddrOf msg]
+--    | otherwise     = call "ivar_put" [TypeParameter typ, In ivar, Out msg]
+--      where
+--        typ = typeof msg
+--
+--iVarDestroy :: Variable () -> Program ()
+--iVarDestroy v = call "ivar_destroy" [Out $ AddrOf $ varToExpr v]
+--
+--freeIVars :: [Declaration ()] -> [Program ()]
+--freeIVars defs = map iVarDestroy ivars
+--  where
+--    ivars = filter (isIVar . typeof) $ map dVar defs
+--
+--spawn :: String -> [Variable ()] -> Program ()
+--spawn taskName vs = call spawnName allParams
+--  where
+--    spawnName = "spawn" ++ show (length vs)
+--    taskParam = FunParameter taskName
+--    typeParams = map (TypeParameter . fixArray . typeof) vs
+--      where fixArray (Pointer t@ArrayType{}) = t
+--            fixArray t                       = t
+--    varParams = map (\v -> In $ VarExpr (Variable (typeof v) (vName v))) vs
+--    allParams = taskParam : concat (zipWith (\a b -> [a,b]) typeParams varParams)
+--
+--run :: String -> [Variable ()] -> Program ()
+--run taskName vs = call runName allParams
+--  where
+--    runName = "run" ++ show (length vs)
+--    typeParams = map (TypeParameter . typeof) vs
+--    taskParam = FunParameter taskName
+--    allParams = taskParam : typeParams
+--
+--intWidth :: Type -> Maybe Integer
+--intWidth (NumType _ S8)  = Just 8
+--intWidth (NumType _ S16) = Just 16
+--intWidth (NumType _ S32) = Just 32
+--intWidth (NumType _ S40) = Just 40
+--intWidth (NumType _ S64) = Just 64
+--intWidth _               = Nothing
+--
+--intSigned :: Type -> Maybe Bool
+--intSigned (NumType Unsigned _) = Just False
+--intSigned (NumType Signed _)   = Just True
+--intSigned _                    = Nothing
+--
+--litF :: Double -> Expression t
+--litF n = ConstExpr (FloatConst n)
+--
+--litB :: Bool -> Expression ()
+--litB b = ConstExpr (BoolConst b)
+--
+--litC :: Constant () -> Constant () -> Expression ()
+--litC r i = ConstExpr (ComplexConst r i)
+--
+--litI :: Type -> Integer -> Expression ()
+--litI t n = ConstExpr (IntConst n t)
+--
+--litI32 :: Integer -> Expression ()
+--litI32 = litI (NumType Unsigned S32)
+--
+--isArray :: Type -> Bool
+--isArray ArrayType{} = True
+--isArray (Pointer t) = isArray t
+--isArray _ = False
+--
+--isNativeArray :: Type -> Bool
+--isNativeArray NativeArray{} = True
+--isNativeArray (Pointer t)   = isNativeArray t
+--isNativeArray _             = False
+--
+--isIVar :: Type -> Bool
+--isIVar IVarType{} = True
+--isIVar _              = False
+--
+--dVar :: Declaration () -> Variable ()
+--dVar (Declaration v _)    = v
+--
+--vName :: Variable t -> String
+--vName Variable{..} = varName
+--
+--lName :: Expression t -> String
+--lName (VarExpr v@Variable{}) = vName v
+--lName (ArrayElem e _)        = lName e
+--lName (StructField e _)      = lName e
+--lName (AddrOf e)             = lName e
+--lName e                      = error $ "Feldspar.Compiler.Imperative.Frontend.lName: invalid location: " ++ show e
+--
+--varToExpr :: Variable t -> Expression t
+--varToExpr = VarExpr
+--
+--binop :: Type -> String -> Expression () -> Expression () -> Expression ()
+--binop t n e1 e2 = fun' Infix t n [e1, e2]
+--
+--fun :: Type -> String -> [Expression ()] -> Expression ()
+--fun = fun' Prefix
+--
+--fun' :: FunctionMode -> Type -> String -> [Expression ()] -> Expression ()
+--fun' m t n = FunctionCall (Function n t m)
+--
+--call :: String -> [ActualParameter ()] -> Program ()
+--call = ProcedureCall
+--
+--for :: String -> Expression () -> Int -> Block () -> Program ()
+--for _ _ _ (Block [] (Sequence [Empty])) = Empty
+--for s e i b = ParLoop (Variable (NumType Unsigned S32) s) e i b
+--
+--while :: Block () -> Expression () -> Block () -> Program ()
+--while p e b = SeqLoop e p b

@@ -49,49 +49,49 @@ import qualified Feldspar.Core.Constructs.Binding as Core
 
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
-import Feldspar.Compiler.Imperative.Representation (Expression(..))
+--import Feldspar.Compiler.Imperative.Representation (Expression(..))
 
 
 instance Compile (Core.Variable :|| Type) dom
-  where
-    compileExprSym (C' (Core.Variable v)) info Nil = do
-        env <- ask
-        case lookup v (alias env) of
-          Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
-          Just e  -> return e
+--  where
+--    compileExprSym (C' (Core.Variable v)) info Nil = do
+--        env <- ask
+--        case lookup v (alias env) of
+--          Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
+--          Just e  -> return e
 
 instance Compile (CLambda Type) dom
-  where
-    compileProgSym = error "Can only compile top-level Lambda"
+--  where
+--    compileProgSym = error "Can only compile top-level Lambda"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
-  where
-    compileProgSym Let _ loc (a :* (lam :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do var <- compileLet a (getInfo lam) v
-             withAlias v var $ compileProg loc body
+--  where
+--    compileProgSym Let _ loc (a :* (lam :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do var <- compileLet a (getInfo lam) v
+--             withAlias v var $ compileProg loc body
+--
+--    compileExprSym Let _ (a :* (lam :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do var <- compileLet a (getInfo lam) v
+--             withAlias v var $ compileExpr body
 
-    compileExprSym Let _ (a :* (lam :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do var <- compileLet a (getInfo lam) v
-             withAlias v var $ compileExpr body
-
-compileLet :: Compile dom dom
-           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> CodeWriter (Expression ())
-compileLet a info v
-    = do
-        let ta  = argType $ infoType info
-            sa  = infoSize $ getInfo a
-            var = mkVar (compileTypeRep ta sa) v
-        declare var
-        compileProg var a
-        return var
-
+--compileLet :: Compile dom dom
+--           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> CodeWriter (Expression ())
+--compileLet a info v
+--    = do
+--        let ta  = argType $ infoType info
+--            sa  = infoSize $ getInfo a
+--            var = mkVar (compileTypeRep ta sa) v
+--        declare var
+--        compileProg var a
+--        return var
+--
 compileBind :: Compile dom dom
-            => (VarId, ASTB (Decor Info dom) Type) -> CodeWriter ()
-compileBind (v, ASTB e)
-     = do
-         let info = getInfo e
-             var = mkVar (compileTypeRep (infoType info) (infoSize info)) v
-         declare var
-         compileProg var e
+  => (VarId, ASTB (Decor Info dom) Type) -> CodeWriter ()
+compileBind (v, ASTB e) = error "compileBind"
+--     = do
+--         let info = getInfo e
+--             var = mkVar (compileTypeRep (infoType info) (infoSize info)) v
+--         declare var
+--         compileProg var e

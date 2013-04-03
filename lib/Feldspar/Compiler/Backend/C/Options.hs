@@ -40,74 +40,81 @@ import Text.Show.Functions
 
 import Feldspar.Core.Interpretation (FeldOpts(..))
 
-import Feldspar.Compiler.Imperative.Representation (Type(..), Constant(..),
-                                                    Module(..))
+--import Feldspar.Compiler.Imperative.Representation (Type(..), Constant(..),
+--                                                    Module(..))
 
 data Options =
     Options
-    { platform          :: Platform
-    , unroll            :: UnrollStrategy
-    , debug             :: DebugOption
-    , memoryInfoVisible :: Bool
-    , printHeader       :: Bool
-    , rules             :: [Rule]
-    , frontendOpts      :: FeldOpts
-    , nestSize          :: Int -- ^ Indentation size for PrettyPrinting
+    {
+     frontendOpts      :: FeldOpts
     }
 
-data UnrollStrategy = NoUnroll | Unroll Int
-    deriving (Eq, Show)
 
-data DebugOption = NoDebug | NoPrimitiveInstructionHandling
-    deriving (Eq, Show)
+--data Options =
+--    Options
+--    { platform          :: Platform
+--    , unroll            :: UnrollStrategy
+--    , debug             :: DebugOption
+--    , memoryInfoVisible :: Bool
+--    , printHeader       :: Bool
+--    , rules             :: [Rule]
+--    , frontendOpts      :: FeldOpts
+--    , nestSize          :: Int -- ^ Indentation size for PrettyPrinting
+--    }
 
-data Platform = Platform {
-    name            :: String,
-    types           :: [(Type, String)],
-    values          :: [(Type, ShowValue)],
-    includes        :: [String],
-    platformRules   :: [Rule],
-    isRestrict      :: IsRestrict
-} deriving (Show)
-
-type ShowValue = Constant () -> String
-
-instance Eq ShowValue where
-    (==) _ _ = True
-
-data IsRestrict = Restrict | NoRestrict
-    deriving (Show,Eq)
-
--- * Actions and rules
-
-data Action t
-    = Replace t
-    | Propagate Rule
-    | WithId (Int -> [Action t])
-    | WithOptions (Options -> [Action t])
-  deriving Typeable
-
-data Rule where
-    Rule :: (Typeable t) => (t -> [Action t]) -> Rule
-
-instance Show Rule where
-    show _ = "Transformation rule."
-
-instance Eq Rule where
-    _ == _ = False
-
-rule :: (Typeable t) => (t -> [Action t]) -> Rule
-rule f = Rule $ \x -> f x
-
-replaceWith :: t -> Action t
-replaceWith = Replace
-
-propagate :: (Typeable t) => (t -> [Action t]) -> Action t'
-propagate = Propagate . rule
-
--- Belongs in some other module, but temporarily resides here to avoid
--- cyclic imports.
-data CompToCCoreResult t = CompToCCoreResult {
-    sourceCode      :: String,
-    debugModule     :: Module t
-}
+--data UnrollStrategy = NoUnroll | Unroll Int
+--    deriving (Eq, Show)
+--
+--data DebugOption = NoDebug | NoPrimitiveInstructionHandling
+--    deriving (Eq, Show)
+--
+--data Platform = Platform {
+--    name            :: String,
+--    types           :: [(Type, String)],
+--    values          :: [(Type, ShowValue)],
+--    includes        :: [String],
+--    platformRules   :: [Rule],
+--    isRestrict      :: IsRestrict
+--} deriving (Show)
+--
+--type ShowValue = Constant () -> String
+--
+--instance Eq ShowValue where
+--    (==) _ _ = True
+--
+--data IsRestrict = Restrict | NoRestrict
+--    deriving (Show,Eq)
+--
+---- * Actions and rules
+--
+--data Action t
+--    = Replace t
+--    | Propagate Rule
+--    | WithId (Int -> [Action t])
+--    | WithOptions (Options -> [Action t])
+--  deriving Typeable
+--
+--data Rule where
+--    Rule :: (Typeable t) => (t -> [Action t]) -> Rule
+--
+--instance Show Rule where
+--    show _ = "Transformation rule."
+--
+--instance Eq Rule where
+--    _ == _ = False
+--
+--rule :: (Typeable t) => (t -> [Action t]) -> Rule
+--rule f = Rule $ \x -> f x
+--
+--replaceWith :: t -> Action t
+--replaceWith = Replace
+--
+--propagate :: (Typeable t) => (t -> [Action t]) -> Action t'
+--propagate = Propagate . rule
+--
+---- Belongs in some other module, but temporarily resides here to avoid
+---- cyclic imports.
+--data CompToCCoreResult t = CompToCCoreResult {
+--    sourceCode      :: String,
+--    debugModule     :: Module t
+--}

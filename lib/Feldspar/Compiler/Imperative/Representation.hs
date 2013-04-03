@@ -51,291 +51,291 @@ import Feldspar.Core.Types (Length)
 -- == Data stuctures to store imperative programs ==
 -- =================================================
 
-data Module t = Module
-    { entities                      :: [Entity t]
-    }
-    deriving (Typeable, Show, Eq)
-
-data Entity t
-    = StructDef
-        { structName                :: String
-        , structMembers             :: [StructMember t]
-        }
-    | TypeDef
-        { actualType                :: Type
-        , typeName                  :: String
-        }
-    | ProcDef
-        { procName                  :: String
-        , inParams                  :: [Variable t]
-        , outParams                 :: [Variable t]
-        , procBody                  :: Block t
-        }
-    | ValueDef
-        { valVar                    :: Variable t
-        , valValue                  :: Constant t
-        }
-    | ProcDecl
-        { procName                  :: String
-        , inParams                  :: [Variable t]
-        , outParams                 :: [Variable t]
-        }
-    deriving (Typeable, Show, Eq)
-
-data StructMember t = StructMember
-    { structMemberName              :: String
-    , structMemberType              :: Type
-    }
-    deriving (Typeable, Show, Eq)
-
-data Block t = Block
-    { locals                        :: [Declaration t]
-    , blockBody                     :: Program t
-    }
-    deriving (Typeable, Show, Eq)
-
-data Program t
-    = Empty
-        {
-        }
-    | Comment
-        { isBlockComment            :: Bool
-        , commentValue              :: String
-        }
-    | Assign
-        { lhs                       :: Expression t
-        , rhs                       :: Expression t
-        }
-    | ProcedureCall
-        { procCallName              :: String
-        , procCallParams            :: [ActualParameter t]
-        }
-    | Sequence
-        { sequenceProgs             :: [Program t]
-        }
-    | Branch
-        { branchCond                :: Expression t
-        , thenBlock                 :: Block t
-        , elseBlock                 :: Block t
-        }
-    | Switch
-        { scrutinee                 :: Expression t
-        , alts                      :: [(Pattern t, Block t)]
-        }
-    | SeqLoop
-        { sLoopCond                 :: Expression t
-        , sLoopCondCalc             :: Block t
-        , sLoopBlock                :: Block t
-        }
-    | ParLoop
-        { pLoopCounter              :: Variable t
-        , pLoopBound                :: Expression t
-        , pLoopStep                 :: Int
-        , pLoopBlock                :: Block t
-        }
-    | BlockProgram
-        { blockProgram              :: Block t
-        }
-    deriving (Typeable, Show, Eq)
-
-data Pattern t
-   = PatDefault
-   | Pat (Constant t)
-     deriving (Typeable, Show, Eq)
-
-data ActualParameter t
-    = In
-        { inParam                   :: Expression t
-        }
-    | Out
-        { outParam                  :: Expression t
-        }
-    | TypeParameter
-        { typeParam                 :: Type
-        }
-    | FunParameter
-        { funParamName              :: String
-        }
-    deriving (Typeable, Show, Eq)
-
-data Declaration t = Declaration
-    { declVar                       :: Variable t
-    , initVal                       :: Maybe (Expression t)
-    }
-    deriving (Typeable, Show, Eq)
-
-data Expression t
-    = VarExpr
-        { var                       :: Variable t
-        }
-    | ArrayElem
-        { array                     :: Expression t
-        , arrayIndex                :: Expression t
-        }
-    | StructField
-        { struct                    :: Expression t
-        , fieldName                 :: String
-        }
-    | ConstExpr
-        { constExpr                 :: Constant t
-        }
-    | FunctionCall
-        { function                  :: Function
-        , funCallParams             :: [Expression t]
-        }
-    | Cast
-        { castType                  :: Type
-        , castExpr                  :: Expression t
-        }
-    | AddrOf
-        { addrExpr                  :: Expression t
-        }
-    | SizeOf
-        { sizeOf                    :: Either Type (Expression t)
-        }
-    deriving (Typeable, Show, Eq)
-
-data Function
-    = Function
-        { funName                   :: String
-        , returnType                :: Type
-        , funMode                   :: FunctionMode
-        }
-    deriving (Typeable, Show, Eq)
-
-data Constant t
-    = IntConst
-        { intValue                  :: Integer
-        , intType                   :: Type
-        }
-    | FloatConst
-        { floatValue                :: Double
-        }
-    | BoolConst
-        { boolValue                 :: Bool
-        }
-    | ComplexConst
-        { realPartComplexValue      :: Constant t
-        , imagPartComplexValue      :: Constant t
-        }
-    | ArrayConst
-        { arrayValues               :: [Constant t]
-        }
-    deriving (Typeable, Show, Eq)
-
-data Variable t
-    = Variable
-        { varType                   :: Type
-        , varName                   :: String
-        }
-    deriving (Typeable, Show, Eq)
-
--- ======================
--- == Basic structures ==
--- ======================
-
-data Size = S8 | S16 | S32 | S40 | S64
-    deriving (Eq,Show)
-
-data Signedness = Signed | Unsigned
-    deriving (Eq,Show)
-
-data Type =
-      VoidType
-    | BoolType
-    | BitType
-    | FloatType
-    | NumType Signedness Size
-    | ComplexType Type
-    | UserType String
-    | Alias Type String
-    | ArrayType (Range Length) Type
-    | NativeArray (Maybe Length) Type
-    | StructType String [(String, Type)]
-    | Pointer Type
-    | IVarType Type
-    deriving (Eq,Show)
-
-data FunctionMode = Prefix | Infix
-    deriving (Eq,Show)
-
------------------------
---   Query functions --
------------------------
-
--- | True if the expression is a value.
-isValue :: Expression t -> Bool
-isValue (ConstExpr {}) = True
-isValue _              = False
-
-----------------------
---   Type inference --
-----------------------
-
-class HasType a where
-    type TypeOf a
-    typeof :: a -> TypeOf a
-
-instance HasType (Variable t) where
-    type TypeOf (Variable t) = Type
-    typeof Variable{..}      = varType
-
-instance HasType (Constant t) where
-    type TypeOf (Constant t) = Type
-    typeof IntConst{..}      = intType
-    typeof FloatConst{}      = FloatType
-    typeof BoolConst{}       = BoolType
-    typeof ArrayConst{..}    = NativeArray (Just (fromIntegral $ length arrayValues)) t
-      where t = typeof $ head arrayValues
-    typeof ComplexConst{..}  = ComplexType $ typeof realPartComplexValue
-
-instance HasType (Expression t) where
-    type TypeOf (Expression t) = Type
-    typeof VarExpr{..}   = typeof var
-    typeof ArrayElem{..} = decrArrayDepth $ typeof array
-      where
-        decrArrayDepth :: Type -> Type
-        decrArrayDepth (ArrayType _ t)   = t
-        decrArrayDepth (NativeArray _ t) = t
-        decrArrayDepth (Pointer t)       = decrArrayDepth t
-        decrArrayDepth t                 = reprError InternalError $ "Non-array variable is indexed! " ++ show array ++ " :: " ++ show t
-    typeof StructField{..} = getStructFieldType fieldName $ typeof struct
-      where
-        getStructFieldType :: String -> Type -> Type
-        getStructFieldType f (StructType _ l) = fromMaybe (structFieldNotFound f) $ lookup f l
-        getStructFieldType f (Alias t _) = getStructFieldType f t
-        getStructFieldType f (Pointer t) = getStructFieldType f t
-        getStructFieldType f t = reprError InternalError $
-            "Trying to get a struct field from not a struct typed expression\n" ++ "Field: " ++ f ++ "\nType:  " ++ show t
-        structFieldNotFound f = reprError InternalError $ "Not found struct field with this name: " ++ f
-    typeof ConstExpr{..}    = typeof constExpr
-    typeof FunctionCall{..} = returnType function
-    typeof Cast{..}         = castType
-    typeof AddrOf{..}       = Pointer $ typeof addrExpr
-    typeof SizeOf{..}       = NumType Signed S32
-
-instance HasType (ActualParameter t) where
-    type TypeOf (ActualParameter t) = Type
-    typeof In{..}            = typeof inParam
-    typeof Out{..}           = typeof outParam
-    typeof TypeParameter{..} = typeParam
-    typeof FunParameter{}    = VoidType
-
-
-reprError :: forall a. ErrorClass -> String -> a
-reprError = handleError "Feldspar.Compiler.Imperative.Representation"
-
--- | Free variables of an expression.
-fv :: Expression t -> [Variable t]
-fv = nub . fv'
-
-fv' :: Expression t -> [Variable t]
-fv' (VarExpr v)         = [v]
-fv' (ArrayElem e i)     = fv' e ++ fv' i
-fv' (StructField e _)   = fv' e
-fv' (FunctionCall _ ps) = concatMap fv' ps
-fv' (Cast _ e)          = fv' e
-fv' (AddrOf e)          = fv' e
-fv' (SizeOf (Right e))  = fv' e
-fv' _                   = []
+--data Module t = Module
+--    { entities                      :: [Entity t]
+--    }
+--    deriving (Typeable, Show, Eq)
+--
+--data Entity t
+--    = StructDef
+--        { structName                :: String
+--        , structMembers             :: [StructMember t]
+--        }
+--    | TypeDef
+--        { actualType                :: Type
+--        , typeName                  :: String
+--        }
+--    | ProcDef
+--        { procName                  :: String
+--        , inParams                  :: [Variable t]
+--        , outParams                 :: [Variable t]
+--        , procBody                  :: Block t
+--        }
+--    | ValueDef
+--        { valVar                    :: Variable t
+--        , valValue                  :: Constant t
+--        }
+--    | ProcDecl
+--        { procName                  :: String
+--        , inParams                  :: [Variable t]
+--        , outParams                 :: [Variable t]
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data StructMember t = StructMember
+--    { structMemberName              :: String
+--    , structMemberType              :: Type
+--    }
+--    deriving (Typeable, Show, Eq)
+--
+--data Block t = Block
+--    { locals                        :: [Declaration t]
+--    , blockBody                     :: Program t
+--    }
+--    deriving (Typeable, Show, Eq)
+--
+--data Program t
+--    = Empty
+--        {
+--        }
+--    | Comment
+--        { isBlockComment            :: Bool
+--        , commentValue              :: String
+--        }
+--    | Assign
+--        { lhs                       :: Expression t
+--        , rhs                       :: Expression t
+--        }
+--    | ProcedureCall
+--        { procCallName              :: String
+--        , procCallParams            :: [ActualParameter t]
+--        }
+--    | Sequence
+--        { sequenceProgs             :: [Program t]
+--        }
+--    | Branch
+--        { branchCond                :: Expression t
+--        , thenBlock                 :: Block t
+--        , elseBlock                 :: Block t
+--        }
+--    | Switch
+--        { scrutinee                 :: Expression t
+--        , alts                      :: [(Pattern t, Block t)]
+--        }
+--    | SeqLoop
+--        { sLoopCond                 :: Expression t
+--        , sLoopCondCalc             :: Block t
+--        , sLoopBlock                :: Block t
+--        }
+--    | ParLoop
+--        { pLoopCounter              :: Variable t
+--        , pLoopBound                :: Expression t
+--        , pLoopStep                 :: Int
+--        , pLoopBlock                :: Block t
+--        }
+--    | BlockProgram
+--        { blockProgram              :: Block t
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data Pattern t
+--   = PatDefault
+--   | Pat (Constant t)
+--     deriving (Typeable, Show, Eq)
+--
+--data ActualParameter t
+--    = In
+--        { inParam                   :: Expression t
+--        }
+--    | Out
+--        { outParam                  :: Expression t
+--        }
+--    | TypeParameter
+--        { typeParam                 :: Type
+--        }
+--    | FunParameter
+--        { funParamName              :: String
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data Declaration t = Declaration
+--    { declVar                       :: Variable t
+--    , initVal                       :: Maybe (Expression t)
+--    }
+--    deriving (Typeable, Show, Eq)
+--
+--data Expression t
+--    = VarExpr
+--        { var                       :: Variable t
+--        }
+--    | ArrayElem
+--        { array                     :: Expression t
+--        , arrayIndex                :: Expression t
+--        }
+--    | StructField
+--        { struct                    :: Expression t
+--        , fieldName                 :: String
+--        }
+--    | ConstExpr
+--        { constExpr                 :: Constant t
+--        }
+--    | FunctionCall
+--        { function                  :: Function
+--        , funCallParams             :: [Expression t]
+--        }
+--    | Cast
+--        { castType                  :: Type
+--        , castExpr                  :: Expression t
+--        }
+--    | AddrOf
+--        { addrExpr                  :: Expression t
+--        }
+--    | SizeOf
+--        { sizeOf                    :: Either Type (Expression t)
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data Function
+--    = Function
+--        { funName                   :: String
+--        , returnType                :: Type
+--        , funMode                   :: FunctionMode
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data Constant t
+--    = IntConst
+--        { intValue                  :: Integer
+--        , intType                   :: Type
+--        }
+--    | FloatConst
+--        { floatValue                :: Double
+--        }
+--    | BoolConst
+--        { boolValue                 :: Bool
+--        }
+--    | ComplexConst
+--        { realPartComplexValue      :: Constant t
+--        , imagPartComplexValue      :: Constant t
+--        }
+--    | ArrayConst
+--        { arrayValues               :: [Constant t]
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+--data Variable t
+--    = Variable
+--        { varType                   :: Type
+--        , varName                   :: String
+--        }
+--    deriving (Typeable, Show, Eq)
+--
+---- ======================
+---- == Basic structures ==
+---- ======================
+--
+--data Size = S8 | S16 | S32 | S40 | S64
+--    deriving (Eq,Show)
+--
+--data Signedness = Signed | Unsigned
+--    deriving (Eq,Show)
+--
+--data Type =
+--      VoidType
+--    | BoolType
+--    | BitType
+--    | FloatType
+--    | NumType Signedness Size
+--    | ComplexType Type
+--    | UserType String
+--    | Alias Type String
+--    | ArrayType (Range Length) Type
+--    | NativeArray (Maybe Length) Type
+--    | StructType String [(String, Type)]
+--    | Pointer Type
+--    | IVarType Type
+--    deriving (Eq,Show)
+--
+--data FunctionMode = Prefix | Infix
+--    deriving (Eq,Show)
+--
+-------------------------
+----   Query functions --
+-------------------------
+--
+---- | True if the expression is a value.
+--isValue :: Expression t -> Bool
+--isValue (ConstExpr {}) = True
+--isValue _              = False
+--
+------------------------
+----   Type inference --
+------------------------
+--
+--class HasType a where
+--    type TypeOf a
+--    typeof :: a -> TypeOf a
+--
+--instance HasType (Variable t) where
+--    type TypeOf (Variable t) = Type
+--    typeof Variable{..}      = varType
+--
+--instance HasType (Constant t) where
+--    type TypeOf (Constant t) = Type
+--    typeof IntConst{..}      = intType
+--    typeof FloatConst{}      = FloatType
+--    typeof BoolConst{}       = BoolType
+--    typeof ArrayConst{..}    = NativeArray (Just (fromIntegral $ length arrayValues)) t
+--      where t = typeof $ head arrayValues
+--    typeof ComplexConst{..}  = ComplexType $ typeof realPartComplexValue
+--
+--instance HasType (Expression t) where
+--    type TypeOf (Expression t) = Type
+--    typeof VarExpr{..}   = typeof var
+--    typeof ArrayElem{..} = decrArrayDepth $ typeof array
+--      where
+--        decrArrayDepth :: Type -> Type
+--        decrArrayDepth (ArrayType _ t)   = t
+--        decrArrayDepth (NativeArray _ t) = t
+--        decrArrayDepth (Pointer t)       = decrArrayDepth t
+--        decrArrayDepth t                 = reprError InternalError $ "Non-array variable is indexed! " ++ show array ++ " :: " ++ show t
+--    typeof StructField{..} = getStructFieldType fieldName $ typeof struct
+--      where
+--        getStructFieldType :: String -> Type -> Type
+--        getStructFieldType f (StructType _ l) = fromMaybe (structFieldNotFound f) $ lookup f l
+--        getStructFieldType f (Alias t _) = getStructFieldType f t
+--        getStructFieldType f (Pointer t) = getStructFieldType f t
+--        getStructFieldType f t = reprError InternalError $
+--            "Trying to get a struct field from not a struct typed expression\n" ++ "Field: " ++ f ++ "\nType:  " ++ show t
+--        structFieldNotFound f = reprError InternalError $ "Not found struct field with this name: " ++ f
+--    typeof ConstExpr{..}    = typeof constExpr
+--    typeof FunctionCall{..} = returnType function
+--    typeof Cast{..}         = castType
+--    typeof AddrOf{..}       = Pointer $ typeof addrExpr
+--    typeof SizeOf{..}       = NumType Signed S32
+--
+--instance HasType (ActualParameter t) where
+--    type TypeOf (ActualParameter t) = Type
+--    typeof In{..}            = typeof inParam
+--    typeof Out{..}           = typeof outParam
+--    typeof TypeParameter{..} = typeParam
+--    typeof FunParameter{}    = VoidType
+--
+--
+--reprError :: forall a. ErrorClass -> String -> a
+--reprError = handleError "Feldspar.Compiler.Imperative.Representation"
+--
+---- | Free variables of an expression.
+--fv :: Expression t -> [Variable t]
+--fv = nub . fv'
+--
+--fv' :: Expression t -> [Variable t]
+--fv' (VarExpr v)         = [v]
+--fv' (ArrayElem e i)     = fv' e ++ fv' i
+--fv' (StructField e _)   = fv' e
+--fv' (FunctionCall _ ps) = concatMap fv' ps
+--fv' (Cast _ e)          = fv' e
+--fv' (AddrOf e)          = fv' e
+--fv' (SizeOf (Right e))  = fv' e
+--fv' _                   = []
 

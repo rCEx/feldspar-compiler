@@ -49,97 +49,90 @@ import Feldspar.Core.Constructs.MutableReference
 
 import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
-import qualified Feldspar.Compiler.Imperative.Representation as Rep (Type(..),
-                                                                     Size(..),
-                                                                     Signedness(..),
-                                                                     Variable(..))
-import Feldspar.Compiler.Imperative.Representation (Expression(..),
-                                                    Program(..),
-                                                    Block(..))
 
 instance ( Compile dom dom
          , Project (CLambda Type) dom
          )
       => Compile (MONAD Mut) dom
-  where
-    compileProgSym Bind _ loc (ma :* (lam :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do
-            let info = getInfo ma
-                var  = mkVar (compileTypeRep (infoType info) (infoSize info)) v
-            declare var
-            compileProg var ma
-            compileProg loc body
-
-    compileProgSym Then _ loc (ma :* mb :* Nil) = do
-        let err = error $  "compileProgSym Then: "
-                        ++ "Should not assign from the first action"
-        compileProg err ma
-        compileProg loc mb
-
-    compileProgSym Return info loc (a :* Nil)
-        | MutType UnitType <- infoType info = return ()
-        | otherwise                         = compileProg loc a
-
-    compileProgSym When _ loc (c :* action :* Nil) = do
-        c' <- compileExpr c
-        (_, b) <- confiscateBlock $ compileProg loc action
-        tellProg [Branch c' b (toBlock Empty)]
-
-instance (Compile dom dom, Project (CLambda Type) dom) => Compile Mutable dom
-  where
-    compileProgSym Run _ loc (ma :* Nil) = compileProg loc ma
-
-    compileExprSym Run _ (ma :* Nil) = compileExpr ma
-
-instance (Compile dom dom, Project (CLambda Type) dom) => Compile MutableReference dom
-  where
-    compileProgSym NewRef _ loc (a :* Nil) = compileProg loc a
-    compileProgSym GetRef _ loc (r :* Nil) = compileProg loc r
-    compileProgSym SetRef _ _   (r :* a :* Nil) = do
-        var  <- compileExpr r
-        compileProg var a
-    compileProgSym ModRef _ loc (r :* (lam :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do
-            var <- compileExpr r
-            withAlias v var $ compileProg var body
-               -- Since the modifier function is pure it is safe to alias
-               -- v with var here
-
-    compileExprSym GetRef _ (r :* Nil) = compileExpr r
-    compileExprSym feat info args      = compileProgFresh feat info args
-
-instance (Compile dom dom, Project (CLambda Type) dom) => Compile MutableArray dom
-  where
-    compileProgSym NewArr_ _ loc (len :* Nil) = do
-      l <- compileExpr len
-      tellProg [initArray (AddrOf loc) l]
-
-    compileProgSym NewArr _ loc (len :* a :* Nil) = do
-        nId <- freshId
-        let ix = varToExpr $ mkNamedVar "i" (Rep.NumType Rep.Unsigned Rep.S32) nId
-        a' <- compileExpr a
-        l  <- compileExpr len
-        tellProg [initArray (AddrOf loc) l]
-        tellProg [for "i" l 1 $ toBlock (Sequence [copyProg (ArrayElem (AddrOf loc) ix) [a']])]
-
-    compileProgSym GetArr _ loc (arr :* i :* Nil) = do
-        arr' <- compileExpr arr
-        i'   <- compileExpr i
-        assign loc (ArrayElem (AddrOf arr') i')
-
-    compileProgSym SetArr _ _ (arr :* i :* a :* Nil) = do
-        arr' <- compileExpr arr
-        i'   <- compileExpr i
-        a'   <- compileExpr a
-        assign (ArrayElem (AddrOf arr') i') a'
-
-    compileProgSym a info loc args = compileExprLoc a info loc args
-
-    compileExprSym ArrLength info (arr :* Nil) = do
-        a' <- compileExpr arr
-        return $ arrayLength a'
-
-    compileExprSym a info args = compileProgFresh a info args
-
+--  where
+--    compileProgSym Bind _ loc (ma :* (lam :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do
+--            let info = getInfo ma
+--                var  = mkVar (compileTypeRep (infoType info) (infoSize info)) v
+--            declare var
+--            compileProg var ma
+--            compileProg loc body
+--
+--    compileProgSym Then _ loc (ma :* mb :* Nil) = do
+--        let err = error $  "compileProgSym Then: "
+--                        ++ "Should not assign from the first action"
+--        compileProg err ma
+--        compileProg loc mb
+--
+--    compileProgSym Return info loc (a :* Nil)
+--        | MutType UnitType <- infoType info = return ()
+--        | otherwise                         = compileProg loc a
+--
+--    compileProgSym When _ loc (c :* action :* Nil) = do
+--        c' <- compileExpr c
+--        (_, b) <- confiscateBlock $ compileProg loc action
+--        tellProg [Branch c' b (toBlock Empty)]
+--
+--instance (Compile dom dom, Project (CLambda Type) dom) => Compile Mutable dom
+--  where
+--    compileProgSym Run _ loc (ma :* Nil) = compileProg loc ma
+--
+--    compileExprSym Run _ (ma :* Nil) = compileExpr ma
+--
+--instance (Compile dom dom, Project (CLambda Type) dom) => Compile MutableReference dom
+--  where
+--    compileProgSym NewRef _ loc (a :* Nil) = compileProg loc a
+--    compileProgSym GetRef _ loc (r :* Nil) = compileProg loc r
+--    compileProgSym SetRef _ _   (r :* a :* Nil) = do
+--        var  <- compileExpr r
+--        compileProg var a
+--    compileProgSym ModRef _ loc (r :* (lam :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do
+--            var <- compileExpr r
+--            withAlias v var $ compileProg var body
+--               -- Since the modifier function is pure it is safe to alias
+--               -- v with var here
+--
+--    compileExprSym GetRef _ (r :* Nil) = compileExpr r
+--    compileExprSym feat info args      = compileProgFresh feat info args
+--
+--instance (Compile dom dom, Project (CLambda Type) dom) => Compile MutableArray dom
+--  where
+--    compileProgSym NewArr_ _ loc (len :* Nil) = do
+--      l <- compileExpr len
+--      tellProg [initArray (AddrOf loc) l]
+--
+--    compileProgSym NewArr _ loc (len :* a :* Nil) = do
+--        nId <- freshId
+--        let ix = varToExpr $ mkNamedVar "i" (Rep.NumType Rep.Unsigned Rep.S32) nId
+--        a' <- compileExpr a
+--        l  <- compileExpr len
+--        tellProg [initArray (AddrOf loc) l]
+--        tellProg [for "i" l 1 $ toBlock (Sequence [copyProg (ArrayElem (AddrOf loc) ix) [a']])]
+--
+--    compileProgSym GetArr _ loc (arr :* i :* Nil) = do
+--        arr' <- compileExpr arr
+--        i'   <- compileExpr i
+--        assign loc (ArrayElem (AddrOf arr') i')
+--
+--    compileProgSym SetArr _ _ (arr :* i :* a :* Nil) = do
+--        arr' <- compileExpr arr
+--        i'   <- compileExpr i
+--        a'   <- compileExpr a
+--        assign (ArrayElem (AddrOf arr') i') a'
+--
+--    compileProgSym a info loc args = compileExprLoc a info loc args
+--
+--    compileExprSym ArrLength info (arr :* Nil) = do
+--        a' <- compileExpr arr
+--        return $ arrayLength a'
+--
+--    compileExprSym a info args = compileProgFresh a info args
+--

@@ -42,27 +42,23 @@ import Language.Syntactic
 import Feldspar.Core.Types (Type,defaultSize)
 import Feldspar.Core.Interpretation
 import Feldspar.Core.Constructs.NoInline
-import Feldspar.Compiler.Imperative.Representation (Variable(..),
-                                                    Program(..),
-                                                    ActualParameter(..),
-                                                    Entity(..), typeof)
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.Frontend
 
 instance Compile dom dom => Compile (NoInline :|| Type) dom
-  where
-    compileExprSym = compileProgFresh
-
-    compileProgSym (C' NoInline) info loc (p :* Nil) = do
-        let args = [mkVariable (compileTypeRep t (defaultSize t)) v
-                   | (v,SomeType t) <- assocs $ infoVars info
-                   ]
-        (_, b)  <- confiscateBlock $ compileProg loc p
-        let isInParam v = vName v /= lName loc
-        let (ins,outs) = partition isInParam args
-        funId  <- freshId
-        let funname = "noinline" ++ show funId
-        tellDef [ProcDef funname ins outs b]
-        let ins' = map (\v -> In $ varToExpr $ Variable (typeof v) (vName v)) ins
-        tellProg [call funname $ ins' ++ [Out loc]]
+--  where
+--    compileExprSym = compileProgFresh
+--
+--    compileProgSym (C' NoInline) info loc (p :* Nil) = do
+--        let args = [mkVariable (compileTypeRep t (defaultSize t)) v
+--                   | (v,SomeType t) <- assocs $ infoVars info
+--                   ]
+--        (_, b)  <- confiscateBlock $ compileProg loc p
+--        let isInParam v = vName v /= lName loc
+--        let (ins,outs) = partition isInParam args
+--        funId  <- freshId
+--        let funname = "noinline" ++ show funId
+--        tellDef [ProcDef funname ins outs b]
+--        let ins' = map (\v -> In $ varToExpr $ Variable (typeof v) (vName v)) ins
+--        tellProg [call funname $ ins' ++ [Out loc]]
 

@@ -47,7 +47,6 @@ import Feldspar.Core.Constructs.MutableArray
 import Feldspar.Core.Constructs.MutableToPure
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Expression(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
@@ -58,36 +57,36 @@ instance ( Compile dom dom
          , Project MutableArray dom
          )
       => Compile MutableToPure dom
-  where
-    compileProgSym WithArray _ loc (marr :* (lam :$ body) :* Nil)
-        | Just (C' (Variable _))        <- prjF marr
-        , Just (SubConstr2 (Lambda v1)) <- prjLambda lam
-        = do
-            e <- compileExpr marr
-            withAlias v1 e $ do
-              b <- compileExpr body
-              tellProg [copyProg loc [b]]
-
-    compileProgSym WithArray _ loc (marr :* (lam :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do
-            let ta = argType $ infoType $ getInfo lam
-            let sa = fst $ infoSize $ getInfo lam
-            let var = mkVar (compileTypeRep ta sa) v
-            declare var
-            compileProg var marr
-            e <- compileExpr body
-            tellProg [copyProg loc [e]]
-
-    compileProgSym RunMutableArray _ loc ((bnd :$ (na :$ l) :$ (lam :$ body)) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        , Just NewArr_ <- prj na
-        = do
-            len <- compileExpr l
-            tellProg [setLength (AddrOf loc) len]
-            withAlias v loc $ compileProg loc body
-
-    compileProgSym RunMutableArray _ loc (marr :* Nil) = compileProg loc marr
+--  where
+--    compileProgSym WithArray _ loc (marr :* (lam :$ body) :* Nil)
+--        | Just (C' (Variable _))        <- prjF marr
+--        , Just (SubConstr2 (Lambda v1)) <- prjLambda lam
+--        = do
+--            e <- compileExpr marr
+--            withAlias v1 e $ do
+--              b <- compileExpr body
+--              tellProg [copyProg loc [b]]
+--
+--    compileProgSym WithArray _ loc (marr :* (lam :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do
+--            let ta = argType $ infoType $ getInfo lam
+--            let sa = fst $ infoSize $ getInfo lam
+--            let var = mkVar (compileTypeRep ta sa) v
+--            declare var
+--            compileProg var marr
+--            e <- compileExpr body
+--            tellProg [copyProg loc [e]]
+--
+--    compileProgSym RunMutableArray _ loc ((bnd :$ (na :$ l) :$ (lam :$ body)) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        , Just NewArr_ <- prj na
+--        = do
+--            len <- compileExpr l
+--            tellProg [setLength (AddrOf loc) len]
+--            withAlias v loc $ compileProg loc body
+--
+--    compileProgSym RunMutableArray _ loc (marr :* Nil) = compileProg loc marr
 
 {- NOTES:
 

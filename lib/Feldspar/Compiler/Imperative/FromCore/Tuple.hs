@@ -42,68 +42,67 @@ import Feldspar.Core.Types
 import Feldspar.Core.Constructs.Tuple
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Expression(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 
 instance Compile dom dom => Compile (Tuple :|| Type) dom
-  where
-    compileProgSym (C' Tup2) _ loc (m1 :* m2 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-    compileProgSym (C' Tup3) _ loc (m1 :* m2 :* m3 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-        compileProg (StructField loc "member3") m3
-    compileProgSym (C' Tup4) _ loc (m1 :* m2 :* m3 :* m4 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-        compileProg (StructField loc "member3") m3
-        compileProg (StructField loc "member4") m4
-    compileProgSym (C' Tup5) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-        compileProg (StructField loc "member3") m3
-        compileProg (StructField loc "member4") m4
-        compileProg (StructField loc "member5") m5
-    compileProgSym (C' Tup6) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* m6 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-        compileProg (StructField loc "member3") m3
-        compileProg (StructField loc "member4") m4
-        compileProg (StructField loc "member5") m5
-        compileProg (StructField loc "member6") m6
-    compileProgSym (C' Tup7) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* m6 :* m7 :* Nil) = do
-        compileProg (StructField loc "member1") m1
-        compileProg (StructField loc "member2") m2
-        compileProg (StructField loc "member3") m3
-        compileProg (StructField loc "member4") m4
-        compileProg (StructField loc "member5") m5
-        compileProg (StructField loc "member6") m6
-        compileProg (StructField loc "member7") m7
-
+--  where
+--    compileProgSym (C' Tup2) _ loc (m1 :* m2 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--    compileProgSym (C' Tup3) _ loc (m1 :* m2 :* m3 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--        compileProg (StructField loc "member3") m3
+--    compileProgSym (C' Tup4) _ loc (m1 :* m2 :* m3 :* m4 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--        compileProg (StructField loc "member3") m3
+--        compileProg (StructField loc "member4") m4
+--    compileProgSym (C' Tup5) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--        compileProg (StructField loc "member3") m3
+--        compileProg (StructField loc "member4") m4
+--        compileProg (StructField loc "member5") m5
+--    compileProgSym (C' Tup6) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* m6 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--        compileProg (StructField loc "member3") m3
+--        compileProg (StructField loc "member4") m4
+--        compileProg (StructField loc "member5") m5
+--        compileProg (StructField loc "member6") m6
+--    compileProgSym (C' Tup7) _ loc (m1 :* m2 :* m3 :* m4 :* m5 :* m6 :* m7 :* Nil) = do
+--        compileProg (StructField loc "member1") m1
+--        compileProg (StructField loc "member2") m2
+--        compileProg (StructField loc "member3") m3
+--        compileProg (StructField loc "member4") m4
+--        compileProg (StructField loc "member5") m5
+--        compileProg (StructField loc "member6") m6
+--        compileProg (StructField loc "member7") m7
+--
 instance Compile dom dom => Compile (Select :|| Type) dom
-  where
-    compileExprSym (C' Sel1) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member1"
-    compileExprSym (C' Sel2) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member2"
-    compileExprSym (C' Sel3) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member3"
-    compileExprSym (C' Sel4) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member4"
-    compileExprSym (C' Sel5) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member5"
-    compileExprSym (C' Sel6) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member6"
-    compileExprSym (C' Sel7) _ (tup :* Nil) = do
-        tupExpr <- compileExpr tup
-        return $ StructField tupExpr "member7"
-
+--  where
+--    compileExprSym (C' Sel1) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member1"
+--    compileExprSym (C' Sel2) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member2"
+--    compileExprSym (C' Sel3) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member3"
+--    compileExprSym (C' Sel4) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member4"
+--    compileExprSym (C' Sel5) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member5"
+--    compileExprSym (C' Sel6) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member6"
+--    compileExprSym (C' Sel7) _ (tup :* Nil) = do
+--        tupExpr <- compileExpr tup
+--        return $ StructField tupExpr "member7"
+--

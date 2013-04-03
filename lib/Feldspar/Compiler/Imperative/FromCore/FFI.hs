@@ -44,8 +44,8 @@ import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance (Compile dom dom) => Compile (FFI :|| Type) dom
-  where
-    compileExprSym (C' (ForeignImport name _)) info args = do
-        argExprs <- sequence $ listArgs compileExpr args
-        return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
+ -- where
+ --   compileExprSym (C' (ForeignImport name _)) info args = do
+ --       argExprs <- sequence $ listArgs compileExpr args
+ --       return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
 

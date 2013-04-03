@@ -45,28 +45,28 @@ import Feldspar.Core.Interpretation
 import Feldspar.Core.Constructs.Error
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Program(..),
-                                                    ActualParameter(..))
+--import Feldspar.Compiler.Imperative.Representation (Program(..),
+--                                                    ActualParameter(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 
 instance (Compile dom dom) => Compile (Error :|| Type) dom
   where
-    compileProgSym (C' Undefined)    _ _   Nil = return ()
-    compileProgSym (C' (Assert msg)) _ loc (cond :* a :* Nil) = do
-        compileAssert cond msg
-        compileProg loc a
-
-    compileExprSym (C' (Assert msg)) _ (cond :* a :* Nil) = do
-        compileAssert cond msg
-        compileExpr a
-    compileExprSym a info args = compileProgFresh a info args
-
-compileAssert :: (Compile dom dom)
-              => ASTF (Decor Info dom) a -> String -> CodeWriter ()
-compileAssert cond msg = do
-    condExpr <- compileExpr cond
-    tellProg [call "assert" [In condExpr]]
-    unless (null msg) $ tellProg [Comment False $ "{" ++ msg ++ "}"]
+    compileProgSym (C' Undefined)    _   Nil = return ()
+--    compileProgSym (C' (Assert msg)) _ loc (cond :* a :* Nil) = do
+--        compileAssert cond msg
+--        compileProg loc a
+--
+--    compileExprSym (C' (Assert msg)) _ (cond :* a :* Nil) = do
+--        compileAssert cond msg
+--        compileExpr a
+--    compileExprSym a info args = compileProgFresh a info args
+--
+--compileAssert :: (Compile dom dom)
+--              => ASTF (Decor Info dom) a -> String -> CodeWriter ()
+--compileAssert cond msg = do
+--    condExpr <- compileExpr cond
+--    tellProg [call "assert" [In condExpr]]
+--    unless (null msg) $ tellProg [Comment False $ "{" ++ msg ++ "}"]
 

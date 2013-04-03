@@ -33,7 +33,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module Feldspar.Compiler.Imperative.FromCore where
 
 
@@ -41,6 +41,7 @@ import Data.List (nub)
 import Data.Typeable
 
 import Control.Monad.RWS
+import Control.Monad.Writer
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
@@ -52,12 +53,13 @@ import Feldspar.Core.Constructs
 import Feldspar.Core.Constructs.Literal
 import Feldspar.Core.Constructs.Binding
 import Feldspar.Core.Frontend
+import Feldspar.Core.Interpretation
 
 import Feldspar.Range (upperBound)
 
-import qualified Feldspar.Compiler.Imperative.Representation as Rep (Variable(..), Type(..))
-import Feldspar.Compiler.Imperative.Representation (ActualParameter(..), Expression(..), Program(..), Block(..), Module(..), Entity(..), Declaration(..))
-import Feldspar.Compiler.Imperative.Frontend
+--import qualified Feldspar.Compiler.Imperative.Representation as Rep (Variable(..), Type(..))
+--import Feldspar.Compiler.Imperative.Representation (ActualParameter(..), Expression(..), Program(..), Block(..), Module(..), Entity(..), Declaration(..))
+--import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Array ()
 import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
@@ -77,18 +79,33 @@ import Feldspar.Compiler.Imperative.FromCore.Save ()
 import Feldspar.Compiler.Imperative.FromCore.SizeProp ()
 import Feldspar.Compiler.Imperative.FromCore.SourceInfo ()
 import Feldspar.Compiler.Imperative.FromCore.Tuple ()
-
+--
 import Feldspar.Compiler.Backend.C.Options (Options(..))
+
+import Program         as PIRE
+import Expr            as PIRE
+import qualified Types as PIRE
+import Combinators
+
 
 instance Compile FeldDom FeldDom
   where
-    compileProgSym (C' a) = compileProgSym a
-    compileExprSym (C' a) = compileExprSym a
+      compileProgSym (C' a) = compileProgSym a -- TODO problematic. What is Variable?
+--    --compileExprSym (C' a) = compileExprSym a
+--
+--instance Compile Empty dom
+--  where
+--    compileProgSym _ = error "Can't compile Empty"
+--    compileExprSym _ = error "Can't compile Empty"
 
-instance Compile Empty dom
-  where
-    compileProgSym _ = error "Can't compile Empty"
-    compileExprSym _ = error "Can't compile Empty"
+--compileProgTop :: ( Compile dom dom
+--                  , Project (CLambda Type) dom
+--                  , Project Let dom
+--                  , Project (Literal :|| Type) dom
+--                  , ConstrainedBy dom Typeable
+--                  ) =>
+--    Options -> String -> [(VarId, ASTB (Decor Info dom) Type)] ->
+--   ASTF (Decor Info dom) a -> CodeWriter (Rep.Variable ())
 
 compileProgTop :: ( Compile dom dom
                   , Project (CLambda Type) dom
@@ -96,65 +113,71 @@ compileProgTop :: ( Compile dom dom
                   , Project (Literal :|| Type) dom
                   , ConstrainedBy dom Typeable
                   ) =>
-    Options -> String -> [(VarId, ASTB (Decor Info dom) Type)] ->
-    ASTF (Decor Info dom) a -> CodeWriter (Rep.Variable ())
-compileProgTop opt funname bs (lam :$ body)
-    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do
-         let ta  = argType $ infoType $ getInfo lam
-             sa  = fst $ infoSize $ getInfo lam
-             typ = compileTypeRep ta sa
-             arg = if isComposite typ
-                     then mkPointer  typ v
-                     else mkVariable typ v
-         tell $ mempty {args=[arg]}
-         withAlias v (varToExpr arg) $
-           compileProgTop opt funname bs body
-compileProgTop opt funname bs (lt :$ e :$ (lam :$ body))
-  | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-  , Just Let <- prj lt
-  , Just (C' Literal{}) <- prjF e -- Input on form let x = n in e
-  , [ProcedureCall "copy" [Out (VarExpr vr), In (ConstExpr c)]] <- bd
-  , freshName Prelude.== vName vr -- Ensure that compiled result is on form x = n
-  = do tellDef [ValueDef var c]
-       withAlias v (varToExpr var) $
-         compileProgTop opt funname bs body
-  where
-    info     = getInfo e
-    outType  = case compileTypeRep (infoType info) (infoSize info) of
-                 Rep.Pointer (Rep.ArrayType rs t) -> Rep.NativeArray (Just $ upperBound rs) t
-                 t -> t
-    var@(Rep.Variable _ freshName) = case prjLambda lam of
-               Just (SubConstr2 (Lambda v)) -> mkVariable outType v
-    bd = sequenceProgs $ blockBody $ block $ snd $
-          evalRWS (compileProg (varToExpr var) e) (initReader opt) initState
-compileProgTop opt funname bs e@(lt :$ _ :$ _)
-  | Just Let <- prj lt
-  , (bs', body) <- collectLetBinders e
-  = compileProgTop opt funname (reverse bs' ++ bs) body
-compileProgTop opt funname bs a = do
-    let
-        info       = getInfo a
-        outType    = Rep.Pointer $ compileTypeRep (infoType info) (infoSize info)
-        outParam   = Rep.Variable outType "out"
-        outLoc     = varToExpr outParam
-    mapM compileBind (reverse bs)
-    compileProg outLoc a
-    return outParam
+          [(VarId, ASTB (Decor Info dom) Type)] -> -- TODO ??
+          ASTF (Decor Info dom) a -> CodeWriter ()
+compileProgTop bs a = error "compileProgTop"
 
-fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
-fromCore opt funname prog = Module defs
+
+--compileProgTop opt funname bs (lam :$ body)
+--    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--    = do
+--         let ta  = argType $ infoType $ getInfo lam
+--             sa  = fst $ infoSize $ getInfo lam
+--             typ = compileTypeRep ta sa
+--             arg = if isComposite typ
+--                     then mkPointer  typ v
+--                     else mkVariable typ v
+--         tell $ mempty {args=[arg]}
+--         withAlias v (varToExpr arg) $
+--           compileProgTop opt funname bs body
+--compileProgTop opt funname bs (lt :$ e :$ (lam :$ body))
+--  | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--  , Just Let <- prj lt
+--  , Just (C' Literal{}) <- prjF e -- Input on form let x = n in e
+--  , [ProcedureCall "copy" [Out (VarExpr vr), In (ConstExpr c)]] <- bd
+--  , freshName Prelude.== vName vr -- Ensure that compiled result is on form x = n
+--  = do tellDef [ValueDef var c]
+--       withAlias v (varToExpr var) $
+--         compileProgTop opt funname bs body
+--  where
+--    info     = getInfo e
+--    outType  = case compileTypeRep (infoType info) (infoSize info) of
+--                 Rep.Pointer (Rep.ArrayType rs t) -> Rep.NativeArray (Just $ upperBound rs) t
+--                 t -> t
+--    var@(Rep.Variable _ freshName) = case prjLambda lam of
+--               Just (SubConstr2 (Lambda v)) -> mkVariable outType v
+--    bd = sequenceProgs $ blockBody $ block $ snd $
+--          evalRWS (compileProg (varToExpr var) e) (initReader opt) initState
+--compileProgTop opt funname bs e@(lt :$ _ :$ _)
+--  | Just Let <- prj lt
+--  , (bs', body) <- collectLetBinders e
+--  = compileProgTop opt funname (reverse bs' ++ bs) body
+--compileProgTop opt funname bs a = do
+--    let
+--        info       = getInfo a
+--        outType    = Rep.Pointer $ compileTypeRep (infoType info) (infoSize info)
+--        outParam   = Rep.Variable outType "out"
+--        outLoc     = varToExpr outParam
+--    mapM compileBind (reverse bs)
+--    compileProg outLoc a
+--    return outParam
+
+--fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
+--fromCore opt funname prog = Module defs
+fromCore :: SyntacticFeld a => a -> Program ()
+fromCore prog = error "fromCore"
   where
-    (outParam,results) = evalRWS (compileProgTop opt funname [] ast) (initReader opt) initState
+    result     = undefined --execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
-    decls      = decl results
-    ins        = args results
-    post       = epilogue results
-    Block ds p = block results
-    paramTypes = getTypes opt $ Declaration outParam Nothing:map (\v -> Declaration v Nothing) ins
-    defs       =  nub (def results ++ paramTypes)
-               ++ [ProcDef funname ins [outParam] (Block (ds ++ decls) (Sequence (p:post)))]
+    opt        = Options {frontendOpts = defaultFeldOpts}
+--    decls      = decl results
+--    ins        = args results
+--    post       = epilogue results
+--    Block ds p = block results
+--    paramTypes = getTypes opt $ Declaration outParam Nothing:map (\v -> Declaration v Nothing) ins
+--    defs       =  nub (def results ++ paramTypes)
+--               ++ [ProcDef funname ins [outParam] (Block (ds ++ decls) (Sequence (p:post)))]
 
 -- | Get the generated core for a program.
-getCore' :: SyntacticFeld a => Options -> a -> Module ()
-getCore' opts = fromCore opts "test"
+--getCore' :: SyntacticFeld a => Options -> a -> Module ()
+--getCore' opts = fromCore opts "test"

@@ -51,7 +51,6 @@ import Feldspar.Core.Constructs.Literal
 import qualified Feldspar.Core.Constructs.Loop as Core
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Program(..), Block(..), Expression(..), typeof)
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 
@@ -63,63 +62,63 @@ instance ( Compile dom dom
          , ConstrainedBy dom Typeable
          )
       => Compile (Loop :|| Type) dom
-  where
-    compileProgSym (C' ForLoop) _ loc (len :* init :* (lam1 :$ lt1) :* Nil)
-        | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
-        , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
-        , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = do
-            blocks <- mapM (confiscateBlock . compileBind) bs1
-            let info1 = getInfo lam1
-                info2 = getInfo lam2
-                sz = fst $ infoSize info1
-                (dss, lets) = unzip $ map (\(_, Block ds (Sequence body)) -> (ds, body)) blocks
-            let ix' = mkVar (compileTypeRep (infoType info1) (infoSize info1)) ix
-            let stvar = mkVar (compileTypeRep (infoType info2) (infoSize info2)) st
-            len' <- mkLength len (infoType $ getInfo len) sz
-            compileProg loc init
-            (_, Block ds body) <- withAlias st loc $ confiscateBlock $ compileProg stvar ixf >> assign loc stvar
-            declare stvar
-            tellProg [toProg $ Block (concat dss ++ ds) (for (lName ix') len' 1 (toBlock $ Sequence $ concat lets ++ [body]))]
-
-    compileProgSym (C' WhileLoop) _ loc (init :* (lam1 :$ cond) :* (lam2 :$ body) :* Nil)
-        | Just (SubConstr2 (Lambda cv)) <- prjLambda lam1
-        , Just (SubConstr2 (Lambda cb)) <- prjLambda lam2
-        = do
-            let info2 = getInfo lam2
-                info1 = getInfo lam1
-            let stvar = mkVar (compileTypeRep (infoType info2) (infoSize info2)) cb
-                condv = mkVar (compileTypeRep (infoType info1) (infoSize info1)) cv
-            compileProg loc init
-            (_, cond') <- confiscateBlock $ withAlias cv loc $ compileProg condv cond
-            (_, body') <- withAlias cb loc $ confiscateBlock $ compileProg stvar body >> assign loc stvar
-            declare stvar
-            declare condv
-            tellProg [while cond' condv body']
-
-instance ( Compile dom dom
-         , Project (CLambda Type) dom
-         , Project (Literal  :|| Type) dom
-         , Project (Variable :|| Type) dom
-         )
-      => Compile (LoopM Mut) dom
-  where
-    compileProgSym Core.For _ loc (len :* (lam :$ ixf) :* Nil)
-        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        = do
-            let ta = argType $ infoType $ getInfo lam
-            let sa = fst $ infoSize $ getInfo lam
-            let ix = mkVar (compileTypeRep ta sa) v
-            len' <- mkLength len (infoType $ getInfo len) sa
-            (_, Block ds body) <- confiscateBlock $ compileProg loc ixf
-            tellProg [toProg $ Block ds (for (lName ix) len' 1 (toBlock body))]
-
--- TODO Missing While
-    compileProgSym Core.While _ loc (cond :* step :* Nil)
-        = do
-            let info1 = getInfo cond
-            condv <- freshVar "cond" (infoType info1) (infoSize info1)
-            (_, cond')          <- confiscateBlock $ compileProg condv cond
-            (_, step') <- confiscateBlock $ compileProg loc step
-            tellProg [while cond' condv step']
-
+--  where
+--    compileProgSym (C' ForLoop) _ loc (len :* init :* (lam1 :$ lt1) :* Nil)
+--        | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
+--        , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
+--        , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
+--        = do
+--            blocks <- mapM (confiscateBlock . compileBind) bs1
+--            let info1 = getInfo lam1
+--                info2 = getInfo lam2
+--                sz = fst $ infoSize info1
+--                (dss, lets) = unzip $ map (\(_, Block ds (Sequence body)) -> (ds, body)) blocks
+--            let ix' = mkVar (compileTypeRep (infoType info1) (infoSize info1)) ix
+--            let stvar = mkVar (compileTypeRep (infoType info2) (infoSize info2)) st
+--            len' <- mkLength len (infoType $ getInfo len) sz
+--            compileProg loc init
+--            (_, Block ds body) <- withAlias st loc $ confiscateBlock $ compileProg stvar ixf >> assign loc stvar
+--            declare stvar
+--            tellProg [toProg $ Block (concat dss ++ ds) (for (lName ix') len' 1 (toBlock $ Sequence $ concat lets ++ [body]))]
+--
+--    compileProgSym (C' WhileLoop) _ loc (init :* (lam1 :$ cond) :* (lam2 :$ body) :* Nil)
+--        | Just (SubConstr2 (Lambda cv)) <- prjLambda lam1
+--        , Just (SubConstr2 (Lambda cb)) <- prjLambda lam2
+--        = do
+--            let info2 = getInfo lam2
+--                info1 = getInfo lam1
+--            let stvar = mkVar (compileTypeRep (infoType info2) (infoSize info2)) cb
+--                condv = mkVar (compileTypeRep (infoType info1) (infoSize info1)) cv
+--            compileProg loc init
+--            (_, cond') <- confiscateBlock $ withAlias cv loc $ compileProg condv cond
+--            (_, body') <- withAlias cb loc $ confiscateBlock $ compileProg stvar body >> assign loc stvar
+--            declare stvar
+--            declare condv
+--            tellProg [while cond' condv body']
+--
+--instance ( Compile dom dom
+--         , Project (CLambda Type) dom
+--         , Project (Literal  :|| Type) dom
+--         , Project (Variable :|| Type) dom
+--         )
+--      => Compile (LoopM Mut) dom
+--  where
+--    compileProgSym Core.For _ loc (len :* (lam :$ ixf) :* Nil)
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = do
+--            let ta = argType $ infoType $ getInfo lam
+--            let sa = fst $ infoSize $ getInfo lam
+--            let ix = mkVar (compileTypeRep ta sa) v
+--            len' <- mkLength len (infoType $ getInfo len) sa
+--            (_, Block ds body) <- confiscateBlock $ compileProg loc ixf
+--            tellProg [toProg $ Block ds (for (lName ix) len' 1 (toBlock body))]
+--
+---- TODO Missing While
+--    compileProgSym Core.While _ loc (cond :* step :* Nil)
+--        = do
+--            let info1 = getInfo cond
+--            condv <- freshVar "cond" (infoType info1) (infoSize info1)
+--            (_, cond')          <- confiscateBlock $ compileProg condv cond
+--            (_, step') <- confiscateBlock $ compileProg loc step
+--            tellProg [while cond' condv step']
+--

@@ -41,16 +41,16 @@ import Feldspar.Core.Types as Core
 import Feldspar.Core.Constructs.Condition
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Program(..))
+--import Feldspar.Compiler.Imperative.Representation (Program(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 
 instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   where
-    compileProgSym (C' Condition) _ loc (cond :* tHEN :* eLSE :* Nil) = do
-        condExpr <- compileExpr cond
-        (_, tb) <- confiscateBlock $ compileProg loc tHEN
-        (_, eb) <- confiscateBlock $ compileProg loc eLSE
-        tellProg [Branch condExpr tb eb]
+  compileProgSym (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) = error "compileProgSym" --do
+--        condExpr <- compileExpr cond
+--        (_, tb) <- confiscateBlock $ compileProg loc tHEN
+--        (_, eb) <- confiscateBlock $ compileProg loc eLSE
+--        tellProg [Branch condExpr tb eb]
 

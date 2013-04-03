@@ -40,37 +40,35 @@ import Feldspar.Core.Types (Type,defaultSize)
 import Feldspar.Core.Constructs.Future
 import Feldspar.Core.Interpretation
 
-import qualified Feldspar.Compiler.Imperative.Representation as Rep (Type(..), Program(..))
-import Feldspar.Compiler.Imperative.Representation (Entity(..), Block(..),Expression(..), fv)
 import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 import Data.Map (assocs)
 
 instance Compile dom dom => Compile (FUTURE :|| Type) dom
-  where
-    compileExprSym = compileProgFresh
-
-    compileProgSym (C' MkFuture) info loc (p :* Nil) = do
-        let args = [mkVariable (compileTypeRep t (defaultSize t)) v
-                   | (v,SomeType t) <- assocs $ infoVars info
-                   ] ++ fv loc
-        -- Task core:
-        ((_, ws), Block ds bl)  <- confiscateBigBlock $ do
-            p' <- compileExprVar p
-            tellProg [iVarPut loc p']
-        funId  <- freshId
-        let coreName = "task_core" ++ show funId
-        tellDef [ProcDef coreName args [] (Block (decl ws ++ ds) bl)]
-        -- Task:
-        let taskName = "task" ++ show funId
-        let runTask = run coreName args
-        tellDef [ProcDef taskName [] [mkNamedRef "params" Rep.VoidType (-1)] $ toBlock runTask]
-        -- Spawn:
-        tellProg [iVarInit (AddrOf loc)]
-        tellProg [spawn taskName args]
-
-    compileProgSym (C' Await) _ loc (a :* Nil) = do
-        fut <- compileExprVar a -- compileExpr a
-        tellProg [iVarGet loc fut]
-
+--  where
+--    compileExprSym = compileProgFresh
+--
+--    compileProgSym (C' MkFuture) info loc (p :* Nil) = do
+--        let args = [mkVariable (compileTypeRep t (defaultSize t)) v
+--                   | (v,SomeType t) <- assocs $ infoVars info
+--                   ] ++ fv loc
+--        -- Task core:
+--        ((_, ws), Block ds bl)  <- confiscateBigBlock $ do
+--            p' <- compileExprVar p
+--            tellProg [iVarPut loc p']
+--        funId  <- freshId
+--        let coreName = "task_core" ++ show funId
+--        tellDef [ProcDef coreName args [] (Block (decl ws ++ ds) bl)]
+--        -- Task:
+--        let taskName = "task" ++ show funId
+--        let runTask = run coreName args
+--        tellDef [ProcDef taskName [] [mkNamedRef "params" Rep.VoidType (-1)] $ toBlock runTask]
+--        -- Spawn:
+--        tellProg [iVarInit (AddrOf loc)]
+--        tellProg [spawn taskName args]
+--
+--    compileProgSym (C' Await) _ loc (a :* Nil) = do
+--        fut <- compileExprVar a -- compileExpr a
+--        tellProg [iVarGet loc fut]
+--

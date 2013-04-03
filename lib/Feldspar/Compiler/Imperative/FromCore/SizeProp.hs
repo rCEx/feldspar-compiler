@@ -47,7 +47,7 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance Compile dom dom => Compile (PropSize :|| Type) dom
   where
-    compileProgSym (C' (PropSize _)) _ loc (_ :* b :* Nil) = compileProg loc b
+    compileProgSym (C' (PropSize _)) _ (_ :* b :* Nil) = error "SizeProp" --compileProg loc b
 
-    compileExprSym (C' (PropSize _)) _ (_ :* b :* Nil) = compileExpr b
+--    compileExprSym (C' (PropSize _)) _ (_ :* b :* Nil) = compileExpr b
 

@@ -40,16 +40,16 @@ import Language.Syntactic
 import Feldspar.Core.Constructs.ConditionM
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Program(..))
+--import Feldspar.Compiler.Imperative.Representation (Program(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 
 instance Compile dom dom => Compile (ConditionM m) dom
   where
-    compileProgSym ConditionM _ loc (cond :* tHEN :* eLSE :* Nil) = do
-        condExpr <- compileExpr cond
-        (_, tb) <- confiscateBlock $ compileProg loc tHEN
-        (_, eb) <- confiscateBlock $ compileProg loc eLSE
-        tellProg [Branch condExpr tb eb]
+    compileProgSym ConditionM _ (cond :* tHEN :* eLSE :* Nil) = error "ConditionM" --do
+--        condExpr <- compileExpr cond
+--        (_, tb) <- confiscateBlock $ compileProg loc tHEN
+--        (_, eb) <- confiscateBlock $ compileProg loc eLSE
+--        tellProg [Branch condExpr tb eb]
 

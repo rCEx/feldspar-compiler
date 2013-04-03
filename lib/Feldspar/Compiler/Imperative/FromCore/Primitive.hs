@@ -53,35 +53,35 @@ import Feldspar.Core.Constructs.Ord
 import Feldspar.Core.Constructs.Trace
 
 import Feldspar.Compiler.Imperative.Frontend
-import Feldspar.Compiler.Imperative.Representation (Expression(..))
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 
 -- | Converts symbols to primitive function calls
 instance Compile dom dom => Compile Semantics dom
-  where
-    compileExprSym (Sem name _) info args = do
-        argExprs <- sequence $ listArgs compileExpr args
-        return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
-
--- | Convenient implementation of 'compileExprSym' for primitive functions
+--  where
+--    compileExprSym (Sem name _) info args = do
+--        argExprs <- sequence $ listArgs compileExpr args
+--        return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
+--
+---- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)
     => (expr :|| Type) a
     -> Info (DenResult a)
     -> Args (AST (Decor Info dom)) a
-    -> CodeWriter (Expression ())
-compilePrim (C' s) = compileExprSym $ semantics s
+    -- -> CodeWriter (Expression ())
+    -> CodeWriter ()
+compilePrim (C' s) = error "compilePrim" --compileExprSym $ semantics s
 
-instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (Conversion :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (EQ         :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (FLOATING   :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (Logic      :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (NUM        :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (ORD        :|| Type) dom where compileExprSym = compilePrim
-instance Compile dom dom => Compile (Trace      :|| Type) dom where compileExprSym = compilePrim
+instance Compile dom dom => Compile (BITS       :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (Conversion :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (EQ         :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (FLOATING   :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (Logic      :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (NUM        :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (ORD        :|| Type) dom where-- compileExprSym = compilePrim
+instance Compile dom dom => Compile (Trace      :|| Type) dom where-- compileExprSym = compilePrim
 

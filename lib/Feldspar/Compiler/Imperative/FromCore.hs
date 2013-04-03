@@ -90,12 +90,12 @@ import Combinators
 
 instance Compile FeldDom FeldDom
   where
-      compileProgSym (C' a) = compileProgSym a -- TODO problematic. What is Variable?
+    compileProgSym (C' a) = compileProgSym a -- TODO problematic. What is Variable?
 --    --compileExprSym (C' a) = compileExprSym a
 --
---instance Compile Empty dom
---  where
---    compileProgSym _ = error "Can't compile Empty"
+instance Compile Empty dom
+  where
+    compileProgSym _ = error "Can't compile Empty"
 --    compileExprSym _ = error "Can't compile Empty"
 
 --compileProgTop :: ( Compile dom dom

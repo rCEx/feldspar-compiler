@@ -38,7 +38,7 @@ module Feldspar.Compiler.Imperative.Plugin.CollectFreeVars where
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Feldspar.Compiler.Imperative.Frontend as Front
-import Feldspar.Transformation
+--import Feldspar.Transformation
 
 data Collect = Collect
 

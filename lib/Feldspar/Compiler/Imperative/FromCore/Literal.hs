@@ -51,12 +51,18 @@ import Feldspar.Range (upperBound)
 import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
+import Expr
+import Program
+
 instance Compile (Literal :|| Core.Type) dom
---  where
---    compileExprSym (C' (Literal a)) info Nil = literal (infoType info) (infoSize info) a
+  where
+    compileExprSym (C' (Literal a)) info Nil = return $ literal (infoType info) (infoSize info) a
 --
---    compileProgSym (C' (Literal a)) info loc Nil = literalLoc loc (infoType info) (infoSize info) a
+    compileProgSym (C' (Literal a)) info Nil = tellProg $ Statement $ literal (infoType info) (infoSize info) a
+    -- literalLoc (infoType info) (infoSize info) a
 --
+literal :: TypeRep a -> Core.Size a -> a -> Expr
+literal t@IntType{} sz a = Num $ literalConst t sz a
 --literal :: TypeRep a -> Size a -> a -> CodeWriter (Expression ())
 --literal t@UnitType        sz a = return (ConstExpr $ literalConst t sz a)
 --literal t@BoolType        sz a = return (ConstExpr $ literalConst t sz a)
@@ -68,6 +74,11 @@ instance Compile (Literal :|| Core.Type) dom
 --                   literalLoc loc t s a
 --                   return loc
 --
+
+
+literalConst :: TypeRep a -> Core.Size a -> a -> Int
+literalConst t@IntType{} sz a = fromInteger $ toInteger a
+
 --literalConst :: TypeRep a -> Size a -> a -> Constant ()
 --literalConst UnitType        _  ()     = IntConst 0 (Rep.NumType Rep.Unsigned Rep.S32)
 --literalConst BoolType        _  a      = BoolConst a

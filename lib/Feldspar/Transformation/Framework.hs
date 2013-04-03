@@ -47,99 +47,99 @@ transformationError = handleError "PluginArch/TransformationFramework" InternalE
 -- == Utils ==
 -- ===========
 
-class Default t where
-    def :: t
-    def = transformationError "Default value requested."
-
-class Combine t where
-    combine :: t -> t -> t
-    combine = transformationError "Default combination function used."
-
-instance Default () where
-    def = ()
-
-instance Default [a] where
-    def = []
-
-instance Default Int where
-    def = 0
-
-instance (Default a, Default b) => Default (a,b) where
-    def = (def, def)
-
-instance (Default a, Default b, Default c) => Default (a,b,c) where
-    def = (def, def, def)
-
-instance Combine () where
-    combine _ _ = ()
-
-instance Combine String where
-    combine s1 s2 = s1 ++ s2
-
-instance Combine Int where
-    combine i1 i2 = i1 + i2
-
-instance (Combine a, Combine b)
-    => Combine (a,b) where
-        combine (x,y) (v,w) = (combine x v, combine y w)
-
--- =============================
--- == TransformationFramework ==
--- =============================
-
-class (Default (Up t), Combine (Up t))
-    => Transformation t where
-        type From t
-        type To t
-
-        type State t
-        type Down t
-        type Up t
-
-data Result t s
-        = Result
-        { result    :: s (To t)
-        , state     :: State t
-        , up        :: Up t
-        }
-
-deriving instance (Transformation t, Show (s (To t)), Show (State t), Show (Up t)) => Show (Result t s)
-
-data Result1 t s a
-        = Result1
-        { result1   :: s (a (To t))
-        , state1    :: State t
-        , up1       :: Up t
-        }
-
-deriving instance (Transformation t, Show (s (b (To t))), Show (State t), Show (Up t)) => Show (Result1 t s b)
-
--- The following classes used to have `Transformation t` as super-class, but
--- this resulted in looping dictionaries (at run time) after switching to
--- GHC-7.4. This may or may not be related to the following (unconfirmed) bug:
+--class Default t where
+--    def :: t
+--    def = transformationError "Default value requested."
 --
---   http://hackage.haskell.org/trac/ghc/ticket/5913
+--class Combine t where
+--    combine :: t -> t -> t
+--    combine = transformationError "Default combination function used."
 --
--- The constraint `Transformation t` has currently been moved to the relevant
--- instances.
-
-class Transformable t s where
-        transform :: t -> State t -> Down t -> s (From t) -> Result t s
-
-class Transformable1 t s a where
-        transform1 :: t -> State t -> Down t -> s (a (From t)) -> Result1 t s a
-
-class DefaultTransformable t s where
-        defaultTransform :: t -> State t -> Down t -> s (From t) -> Result t s
-
-class DefaultTransformable1 t s a where
-        defaultTransform1 :: t -> State t -> Down t -> s (a (From t)) -> Result1 t s a
-
-instance (DefaultTransformable t s)
-    => Transformable t s where
-        transform = defaultTransform
-
-instance (DefaultTransformable1 t s a)
-    => Transformable1 t s a where
-        transform1 = defaultTransform1
-
+--instance Default () where
+--    def = ()
+--
+--instance Default [a] where
+--    def = []
+--
+--instance Default Int where
+--    def = 0
+--
+--instance (Default a, Default b) => Default (a,b) where
+--    def = (def, def)
+--
+--instance (Default a, Default b, Default c) => Default (a,b,c) where
+--    def = (def, def, def)
+--
+--instance Combine () where
+--    combine _ _ = ()
+--
+--instance Combine String where
+--    combine s1 s2 = s1 ++ s2
+--
+--instance Combine Int where
+--    combine i1 i2 = i1 + i2
+--
+--instance (Combine a, Combine b)
+--    => Combine (a,b) where
+--        combine (x,y) (v,w) = (combine x v, combine y w)
+--
+---- =============================
+---- == TransformationFramework ==
+---- =============================
+--
+--class (Default (Up t), Combine (Up t))
+--    => Transformation t where
+--        type From t
+--        type To t
+--
+--        type State t
+--        type Down t
+--        type Up t
+--
+--data Result t s
+--        = Result
+--        { result    :: s (To t)
+--        , state     :: State t
+--        , up        :: Up t
+--        }
+--
+--deriving instance (Transformation t, Show (s (To t)), Show (State t), Show (Up t)) => Show (Result t s)
+--
+--data Result1 t s a
+--        = Result1
+--        { result1   :: s (a (To t))
+--        , state1    :: State t
+--        , up1       :: Up t
+--        }
+--
+--deriving instance (Transformation t, Show (s (b (To t))), Show (State t), Show (Up t)) => Show (Result1 t s b)
+--
+---- The following classes used to have `Transformation t` as super-class, but
+---- this resulted in looping dictionaries (at run time) after switching to
+---- GHC-7.4. This may or may not be related to the following (unconfirmed) bug:
+----
+----   http://hackage.haskell.org/trac/ghc/ticket/5913
+----
+---- The constraint `Transformation t` has currently been moved to the relevant
+---- instances.
+--
+--class Transformable t s where
+--        transform :: t -> State t -> Down t -> s (From t) -> Result t s
+--
+--class Transformable1 t s a where
+--        transform1 :: t -> State t -> Down t -> s (a (From t)) -> Result1 t s a
+--
+--class DefaultTransformable t s where
+--        defaultTransform :: t -> State t -> Down t -> s (From t) -> Result t s
+--
+--class DefaultTransformable1 t s a where
+--        defaultTransform1 :: t -> State t -> Down t -> s (a (From t)) -> Result1 t s a
+--
+--instance (DefaultTransformable t s)
+--    => Transformable t s where
+--        transform = defaultTransform
+--
+--instance (DefaultTransformable1 t s a)
+--    => Transformable1 t s a where
+--        transform1 = defaultTransform1
+--

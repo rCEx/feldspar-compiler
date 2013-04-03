@@ -39,7 +39,7 @@ module Feldspar.Compiler.Internal
 
 import Feldspar.Compiler.Compiler
 import Feldspar.Compiler.Frontend.Interactive.Interface as Internal
-import Feldspar.Compiler.Backend.C.Options              as Internal
+--import Feldspar.Compiler.Backend.C.Options              as Internal
 import Feldspar.Compiler.Imperative.Frontend            as Internal hiding (spawn)
-import Feldspar.Compiler.Backend.C.Platforms (nativeArrayRules)
+--import Feldspar.Compiler.Backend.C.Platforms (nativeArrayRules)
 

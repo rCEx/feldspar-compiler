@@ -69,6 +69,7 @@ import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Backend.C.Options (Options(..))
 
 import Program
+import Expr
 
 -- | Code generation monad
 type CodeWriter = Writer (Program ())--RWS Readers Writers StatesA
@@ -122,15 +123,15 @@ class Compile sub dom
     --    -> Location
         -> Args (AST (Decor Info dom)) a
         -> CodeWriter ()
-    compileProgSym = error "compileProgSym" --compileExprLoc
+    compileProgSym = compileExprLoc
 
-    --compileExprSym
-    --    :: sub a
-    --    -> Info (DenResult a)
-    --    -> Args (AST (Decor Info dom)) a
-    --    -- -> CodeWriter (Expression ())
-    --    -> CodeWriter ()
-    --compileExprSym = error "compileExprSym" --compileProgFresh
+    compileExprSym -- Function args.
+        :: sub a
+        -> Info (DenResult a)
+        -> Args (AST (Decor Info dom)) a
+        -- -> CodeWriter (Expression ())
+        -> CodeWriter Expr
+    compileExprSym = error "default: compileExprSym" --compileProgFresh
 
 instance (Compile sub1 dom, Compile sub2 dom) =>
     Compile (sub1 :+: sub2) dom
@@ -138,63 +139,65 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
     compileProgSym (InjL a) = compileProgSym a
     compileProgSym (InjR a) = compileProgSym a
 
---    compileExprSym (InjL a) = compileExprSym a
---    compileExprSym (InjR a) = compileExprSym a
+    compileExprSym (InjL a) = compileExprSym a
+    compileExprSym (InjR a) = compileExprSym a
 --
 --
 --
 ---- | Implementation of 'compileExprSym' that assigns an expression to the given
 ---- location.
---compileExprLoc :: Compile sub dom
---    => sub a
---    -> Info (DenResult a)
---    -> Location
---    -> Args (AST (Decor Info dom)) a
---    -> CodeWriter ()
---compileExprLoc a info loc args = do
---    expr <- compileExprSym a info args
---    assign loc expr
+compileExprLoc :: Compile sub dom
+    => sub a
+    -> Info (DenResult a)
+    -- -> Location
+    -> Args (AST (Decor Info dom)) a
+    -> CodeWriter ()
+compileExprLoc a info args = do
+    expr <- compileExprSym a info args
+    --assign loc expr
+    tellProg $ Statement $ expr
 --
 ---- | Implementation of 'compileProgSym' that generates code into a fresh
 ---- variable.
---compileProgFresh :: Compile sub dom
+--compileProgFresh :: Compile sub dom -- TODO Use Alloc?
 --    => sub a
 --    -> Info (DenResult a)
 --    -> Args (AST (Decor Info dom)) a
 --    -> CodeWriter (Expression ())
 --compileProgFresh a info args = do
---    loc <- freshVar "e" (infoType info) (infoSize info)
+--    loc <- --freshVar "e" (infoType info) (infoSize info)
 --    compileProgSym a info loc args
 --    return loc
+
+compileDecor :: Info a -> CodeWriter b -> CodeWriter b
+compileDecor info action = do
+    --let src = infoSource info
+    --aboveSrc <- asks sourceInfo
+   -- unless (null src || src==aboveSrc) $ tellProg [Comment True src]
+    --local (\env -> env{sourceInfo=src}) action
+    action
 --
---compileDecor :: Info a -> CodeWriter b -> CodeWriter b
---compileDecor info action = do
---    let src = infoSource info
---    aboveSrc <- asks sourceInfo
---    unless (null src || src==aboveSrc) $ tellProg [Comment True src]
---    local (\env -> env{sourceInfo=src}) action
+compileProgDecor :: Compile dom dom
+    => --Location
+    Decor Info dom a
+    -> Args (AST (Decor Info dom)) a
+    -> CodeWriter ()
+compileProgDecor (Decor info a) args =
+    compileDecor info $ compileProgSym a info args
 --
---compileProgDecor :: Compile dom dom
---    => Location
---    -> Decor Info dom a
---    -> Args (AST (Decor Info dom)) a
---    -> CodeWriter ()
---compileProgDecor result (Decor info a) args =
---    compileDecor info $ compileProgSym a info result args
---
---compileExprDecor :: Compile dom dom
---    => Decor Info dom a
---    -> Args (AST (Decor Info dom)) a
---    -> CodeWriter (Expression ())
---compileExprDecor (Decor info a) args =
---    compileDecor info $ compileExprSym a info args
+compileExprDecor :: Compile dom dom
+    => Decor Info dom a
+    -> Args (AST (Decor Info dom)) a
+    -> CodeWriter Expr
+compileExprDecor (Decor info a) args =
+    compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
     ASTF (Decor Info dom) a -> CodeWriter ()
-compileProg ast = error "compileProg" --simpleMatch (compileProgDecor result)
+compileProg ast = simpleMatch (compileProgDecor) ast
 --
---compileExpr :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter (Expression ())
---compileExpr = simpleMatch compileExprDecor
+compileExpr :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter Expr
+compileExpr = simpleMatch compileExprDecor
 --
 ---- Compile an expression and make sure that the result is stored in a variable
 --compileExprVar :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter (Expression ())

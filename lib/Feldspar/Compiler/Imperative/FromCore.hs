@@ -90,13 +90,13 @@ import Combinators
 
 instance Compile FeldDom FeldDom
   where
-    compileProgSym (C' a) = compileProgSym a -- TODO problematic. What is Variable?
---    --compileExprSym (C' a) = compileExprSym a
+    compileProgSym (C' a) = compileProgSym a 
+    compileExprSym (C' a) = compileExprSym a
 --
 instance Compile Empty dom
   where
     compileProgSym _ = error "Can't compile Empty"
---    compileExprSym _ = error "Can't compile Empty"
+    compileExprSym _ = error "Can't compile Empty"
 
 --compileProgTop :: ( Compile dom dom
 --                  , Project (CLambda Type) dom
@@ -113,23 +113,22 @@ compileProgTop :: ( Compile dom dom
                   , Project (Literal :|| Type) dom
                   , ConstrainedBy dom Typeable
                   ) =>
-          [(VarId, ASTB (Decor Info dom) Type)] -> -- TODO ??
+          [(VarId, ASTB (Decor Info dom) Type)] ->
           ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgTop bs a = error "compileProgTop"
 
 
---compileProgTop opt funname bs (lam :$ body)
---    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
---    = do
---         let ta  = argType $ infoType $ getInfo lam
---             sa  = fst $ infoSize $ getInfo lam
---             typ = compileTypeRep ta sa
---             arg = if isComposite typ
---                     then mkPointer  typ v
---                     else mkVariable typ v
---         tell $ mempty {args=[arg]}
---         withAlias v (varToExpr arg) $
---           compileProgTop opt funname bs body
+compileProgTop bs (lam :$ body)
+    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+    = do
+         let ta  = argType $ infoType $ getInfo lam
+             sa  = fst $ infoSize $ getInfo lam
+             --typ = compileTypeRep ta sa
+             --arg = if isComposite typ
+             --        then mkPointer  typ v
+             --        else mkVariable typ v
+        -- tell $ mempty {args=[arg]}
+         --withAlias v (varToExpr arg) $
+         compileProgTop bs body
 --compileProgTop opt funname bs (lt :$ e :$ (lam :$ body))
 --  | Just (SubConstr2 (Lambda v)) <- prjLambda lam
 --  , Just Let <- prj lt
@@ -162,12 +161,13 @@ compileProgTop bs a = error "compileProgTop"
 --    compileProg outLoc a
 --    return outParam
 
+compileProgTop bs a = compileProg a --error "compileProgTop"
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
 fromCore :: SyntacticFeld a => a -> Program ()
-fromCore prog = error "fromCore"
+fromCore prog = result
   where
-    result     = undefined --execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
+    result     = execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
 --    decls      = decl results

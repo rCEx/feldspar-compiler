@@ -40,16 +40,16 @@ import Data.Maybe (fromMaybe)
 import Control.Arrow
 import Control.Applicative
 
-import Feldspar.Transformation
+--import Feldspar.Transformation
 import Feldspar.Core.Constructs (SyntacticFeld)
 import Feldspar.Core.Interpretation (defaultFeldOpts)
-import Feldspar.Compiler.Backend.C.Library
-import Feldspar.Compiler.Backend.C.Options
-import Feldspar.Compiler.Backend.C.Platforms
-import Feldspar.Compiler.Backend.C.Plugin.Rule
-import Feldspar.Compiler.Backend.C.CodeGeneration
+--import Feldspar.Compiler.Backend.C.Library
+--import Feldspar.Compiler.Backend.C.Options
+--import Feldspar.Compiler.Backend.C.Platforms
+--import Feldspar.Compiler.Backend.C.Plugin.Rule
+--import Feldspar.Compiler.Backend.C.CodeGeneration
 import Feldspar.Compiler.Imperative.FromCore
-import Feldspar.Compiler.Imperative.Plugin.IVars
+--import Feldspar.Compiler.Imperative.Plugin.IVars
 
 data OriginalFunctionSignature = OriginalFunctionSignature {
     originalFunctionName   :: String,

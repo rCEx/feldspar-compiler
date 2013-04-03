@@ -32,7 +32,7 @@
 
 module Feldspar.Compiler.Imperative.Plugin.IVars where
 
-import Feldspar.Transformation
+--import Feldspar.Transformation
 
 import Data.List (isPrefixOf)
 

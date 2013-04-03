@@ -51,18 +51,21 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 --import Feldspar.Compiler.Imperative.Representation (Expression(..))
 
+import Expr
+import Program
 
 instance Compile (Core.Variable :|| Type) dom
---  where
---    compileExprSym (C' (Core.Variable v)) info Nil = do
---        env <- ask
---        case lookup v (alias env) of
---          Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
---          Just e  -> return e
+  where
+    compileExprSym (C' (Core.Variable v)) info Nil = Alloc TInt [] $ \loc v -> var v
+    return $ var ('v':show v)
+        --env <- ask
+        --case lookup v (alias env) of
+        --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
+        --  Just e  -> return e
 
 instance Compile (CLambda Type) dom
---  where
---    compileProgSym = error "Can only compile top-level Lambda"
+  where
+    compileProgSym = error "Can only compile top-level Lambda"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 --  where

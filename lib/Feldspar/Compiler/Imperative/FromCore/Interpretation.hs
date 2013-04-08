@@ -70,9 +70,11 @@ import Feldspar.Compiler.Backend.C.Options (Options(..))
 
 import Program
 import Expr
+import Types as PIRE
+import Procedure
 
 -- | Code generation monad
-type CodeWriter = Writer (Program ())--RWS Readers Writers StatesA
+type CodeWriter = Writer Writers--(Program ())--RWS Readers Writers StatesA
 
 --data Readers = Readers { alias :: [(VarId, Expression ())] -- ^ variable aliasing
 --                       , sourceInfo :: SourceInfo -- ^ Surrounding source info
@@ -82,6 +84,15 @@ type CodeWriter = Writer (Program ())--RWS Readers Writers StatesA
 --initReader :: Options -> Readers
 --initReader = Readers [] ""
 --
+
+data Writers = Writers { proc    :: Proc ()
+                       , program :: Program ()
+                       }
+
+instance Monoid Writers where
+  mempty = Writers mempty mempty
+  mappend a b = Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
+
 --data Writers = Writers { block    :: Block ()         -- ^ collects code within one block
 --                       , def      :: [Entity ()]      -- ^ collects top level definitions
 --                       , decl     :: [Declaration ()] -- ^ collects top level variable declarations
@@ -234,9 +245,10 @@ compileExpr = simpleMatch compileExprDecor
 --    name = intercalate "_" $ "s" : map (encodeType . snd) trs
 --
 --compileTypeRep :: TypeRep a -> Core.Size a -> Type
+compileTypeRep :: TypeRep a -> Core.Size a -> PIRE.Type
 --compileTypeRep UnitType _                = VoidType
 --compileTypeRep Core.BoolType _           = BoolType
---compileTypeRep (IntType s n) _           = compileNumType s n
+compileTypeRep (IntType s n) _           = TInt --compileNumType s n
 --compileTypeRep Core.FloatType _          = FloatType
 --compileTypeRep (Core.ComplexType t) _    = ComplexType (compileTypeRep t (defaultSize t))
 --compileTypeRep (Tup2Type a b) (sa,sb)          = mkStructType
@@ -341,7 +353,8 @@ compileExpr = simpleMatch compileExprDecor
 --
 
 tellProg :: Program () -> CodeWriter ()
-tellProg prg = tell prg
+tellProg prg = tell $ mempty {program = prg}
+
 
 --tellProg :: [Program ()] -> CodeWriter ()
 --tellProg [BlockProgram (Block [] ps)] = tell $ mempty {block = toBlock $ Sequence [ps]}

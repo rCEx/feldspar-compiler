@@ -86,7 +86,9 @@ import Program         as PIRE
 import Expr            as PIRE
 import qualified Types as PIRE
 import Combinators
-
+import Procedure       as PIRE
+import GenOCL          as PIRE
+import Gen             as PIRE
 
 instance Compile FeldDom FeldDom
   where
@@ -119,14 +121,14 @@ compileProgTop :: ( Compile dom dom
 
 compileProgTop bs (lam :$ body)
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do
-         let ta  = argType $ infoType $ getInfo lam
+    = do let ta  = argType $ infoType $ getInfo lam
              sa  = fst $ infoSize $ getInfo lam
-             --typ = compileTypeRep ta sa
+             typ = compileTypeRep ta sa
              --arg = if isComposite typ
              --        then mkPointer  typ v
              --        else mkVariable typ v
         -- tell $ mempty {args=[arg]}
+         tell $ mempty {proc = NewParam typ (\n1 n2 -> PIRE.Nil)}
          --withAlias v (varToExpr arg) $
          compileProgTop bs body
 --compileProgTop opt funname bs (lt :$ e :$ (lam :$ body))
@@ -164,8 +166,8 @@ compileProgTop bs (lam :$ body)
 compileProgTop bs a = compileProg a --error "compileProgTop"
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
-fromCore :: SyntacticFeld a => a -> Program ()
-fromCore prog = result
+fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
+fromCore prog = PIRE.showProg $ PIRE.gen $ mappend (proc result) (ProcBody (program result))
   where
     result     = execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog

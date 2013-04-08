@@ -56,8 +56,7 @@ import Program
 
 instance Compile (Core.Variable :|| Type) dom
   where
-    compileExprSym (C' (Core.Variable v)) info Nil = Alloc TInt [] $ \loc v -> var v
-    return $ var ('v':show v)
+    compileExprSym (C' (Core.Variable v)) info Nil = return $ var ('v':show v)
         --env <- ask
         --case lookup v (alias env) of
         --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v

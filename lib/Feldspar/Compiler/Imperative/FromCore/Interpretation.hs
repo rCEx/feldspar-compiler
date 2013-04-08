@@ -43,6 +43,7 @@ import Control.Monad.Writer
 
 import Data.Char (toLower)
 import Data.List (intercalate)
+import qualified Data.Map as M
 
 import Language.Syntactic.Syntax hiding (result)
 import Language.Syntactic.Traversal
@@ -74,7 +75,7 @@ import Types as PIRE
 import Procedure
 
 -- | Code generation monad
-type CodeWriter = Writer Writers--(Program ())--RWS Readers Writers StatesA
+type CodeWriter = RWS () Writers States --(Program ())--RWS Readers Writers StatesA
 
 --data Readers = Readers { alias :: [(VarId, Expression ())] -- ^ variable aliasing
 --                       , sourceInfo :: SourceInfo -- ^ Surrounding source info
@@ -92,6 +93,10 @@ data Writers = Writers { proc    :: Proc ()
 instance Monoid Writers where
   mempty = Writers mempty mempty
   mappend a b = Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
+
+
+
+
 
 --data Writers = Writers { block    :: Block ()         -- ^ collects code within one block
 --                       , def      :: [Entity ()]      -- ^ collects top level definitions
@@ -115,11 +120,13 @@ instance Monoid Writers where
 --                          , epilogue = mappend (epilogue a) (epilogue b)
 --                          }
 --
+data States = States { varMap :: M.Map Name Name
+                     }
 --data States = States { fresh :: VarId -- ^ The first fresh variable id
 --                     }
 --
---initState :: States
---initState = States 0
+initState :: States
+initState = States M.empty
 --
 ---- | Where to place the program result
 --type Location = Expression ()

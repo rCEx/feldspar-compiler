@@ -109,6 +109,8 @@ instance Compile Empty dom
 --    Options -> String -> [(VarId, ASTB (Decor Info dom) Type)] ->
 --   ASTF (Decor Info dom) a -> CodeWriter (Rep.Variable ())
 
+
+
 compileProgTop :: ( Compile dom dom
                   , Project (CLambda Type) dom
                   , Project Let dom
@@ -127,6 +129,7 @@ compileProgTop bs (lam :$ body)
              --        else mkVariable typ v
         -- tell $ mempty {args=[arg]}
          tellProc $ NewParam typ (\n -> PIRE.Nil)
+        -- tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v)
          --withAlias v (varToExpr arg) $
          compileProgTop bs body
 compileProgTop bs (lt :$ e :$ (lam :$ body))
@@ -169,7 +172,7 @@ compileProgTop bs a = compileProg a --error "compileProgTop"
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
 fromCore prog = PIRE.showProg $ PIRE.gen $ mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ -> PIRE.Nil) (proc result)) (ProcBody (program result))
   where
-    result     = execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
+    (_,result) = evalRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
 --    decls      = decl results

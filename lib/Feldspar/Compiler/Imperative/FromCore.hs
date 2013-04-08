@@ -126,7 +126,7 @@ compileProgTop bs (lam :$ body)
              --        then mkPointer  typ v
              --        else mkVariable typ v
         -- tell $ mempty {args=[arg]}
-         tellProc $ NewParam typ (\n1 n2 -> PIRE.Nil)
+         tellProc $ NewParam typ (\n -> PIRE.Nil)
          --withAlias v (varToExpr arg) $
          compileProgTop bs body
 compileProgTop bs (lt :$ e :$ (lam :$ body))
@@ -167,7 +167,7 @@ compileProgTop bs a = compileProg a --error "compileProgTop"
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ _ -> PIRE.Nil) (proc result)) (ProcBody (program result))
+fromCore prog = PIRE.showProg $ PIRE.gen $ mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ -> PIRE.Nil) (proc result)) (ProcBody (program result))
   where
     result     = execWriter (compileProgTop [] ast) --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog

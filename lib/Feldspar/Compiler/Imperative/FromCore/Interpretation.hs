@@ -355,6 +355,9 @@ compileTypeRep (IntType s n) _           = TInt --compileNumType s n
 tellProg :: Program () -> CodeWriter ()
 tellProg prg = tell $ mempty {program = prg}
 
+tellProc :: Proc () -> CodeWriter ()
+tellProc prc = tell $ mempty {proc = prc}
+
 
 --tellProg :: [Program ()] -> CodeWriter ()
 --tellProg [BlockProgram (Block [] ps)] = tell $ mempty {block = toBlock $ Sequence [ps]}

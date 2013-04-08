@@ -57,6 +57,8 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 import Expr
 
+import Debug.Trace
+
 -- | Converts symbols to primitive function calls
 instance Compile dom dom => Compile Semantics dom
   where

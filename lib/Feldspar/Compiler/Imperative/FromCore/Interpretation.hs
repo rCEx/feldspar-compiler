@@ -72,7 +72,7 @@ import Feldspar.Compiler.Backend.C.Options (Options(..))
 import Program
 import Expr
 import Types as PIRE
-import Procedure
+import Procedure as PIRE
 
 -- | Code generation monad
 type CodeWriter = RWS () Writers States --(Program ())--RWS Readers Writers StatesA
@@ -95,6 +95,12 @@ instance Monoid Writers where
   mappend a b = Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
 
 
+analyzeProc :: Proc () -> Proc ()
+--analyzeProc PIRE.Nil       = PIRE.Nil
+analyzeProc (BasicProc p)  = BasicProc (analyzeProc p)
+analyzeProc (ProcBody p)   = PIRE.Nil
+analyzeProc (NewParam t k) = NewParam t $ \n -> analyzeProc $ k n
+analyzeProc p              = p
 
 
 
@@ -120,13 +126,13 @@ instance Monoid Writers where
 --                          , epilogue = mappend (epilogue a) (epilogue b)
 --                          }
 --
-data States = States { varMap :: M.Map Name Name
-                     }
+data States = States
+                     
 --data States = States { fresh :: VarId -- ^ The first fresh variable id
 --                     }
 --
 initState :: States
-initState = States M.empty
+initState = States
 --
 ---- | Where to place the program result
 --type Location = Expression ()

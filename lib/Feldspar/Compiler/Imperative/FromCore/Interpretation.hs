@@ -305,6 +305,7 @@ compileTypeRep (IntType s n) _           = TInt --compileNumType s n
 --        ]
 --compileTypeRep (MutType a) _            = compileTypeRep a (defaultSize a)
 --compileTypeRep (RefType a) _            = compileTypeRep a (defaultSize a)
+compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es
 --compileTypeRep (Core.ArrayType a) (rs :> es) = Pointer $ ArrayType rs $ compileTypeRep a es
 --compileTypeRep (MArrType a) (rs :> es)  = Pointer $ ArrayType rs $ compileTypeRep a es
 --compileTypeRep (ParType a) _            = compileTypeRep a (defaultSize a)

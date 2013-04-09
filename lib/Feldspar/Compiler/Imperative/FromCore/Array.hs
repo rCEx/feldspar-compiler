@@ -58,7 +58,7 @@ import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 
-
+import Program
 
 instance ( Compile dom dom
          , Project (CLambda Type) dom
@@ -74,7 +74,9 @@ instance ( Compile dom dom
   where
     compileProgSym (C' Parallel) _ (len :* (lam :$ ixf) :* Nil) = error "Parallel."
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
---        = do
+--        = do  let ta = argType $ infoType $ getInfo lam
+--              tellProg $ 
+
 --            let ta = argType $ infoType $ getInfo lam
 --            let sa = fst $ infoSize $ getInfo lam
 --            let ix = mkVar (compileTypeRep ta sa) v

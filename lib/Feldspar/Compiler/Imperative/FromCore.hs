@@ -85,7 +85,7 @@ import Feldspar.Compiler.Backend.C.Options (Options(..))
 import Program         as PIRE
 import Expr            as PIRE
 import qualified Types as PIRE
-import Combinators
+import Combinators     as PIRE
 import Procedure       as PIRE
 import GenOCL          as PIRE
 import Gen             as PIRE

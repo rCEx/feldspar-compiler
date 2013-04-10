@@ -76,7 +76,7 @@ compilePrim :: (Semantic expr, Compile dom dom)
     -> Info (DenResult a)
     -> Args (AST (Decor Info dom)) a
     -- -> CodeWriter (Expression ())
-    -> CodeWriter Expr
+    -> Alias -> Expr --CodeWriter Expr
 compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim

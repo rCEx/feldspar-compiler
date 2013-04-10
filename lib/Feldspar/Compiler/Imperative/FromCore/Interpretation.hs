@@ -75,7 +75,9 @@ import Types as PIRE
 import Procedure as PIRE
 
 -- | Code generation monad
-type CodeWriter a = M.Map VarId Name -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
+type CodeWriter a = Alias -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
+
+type Alias = M.Map VarId Name
 
 --data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
                       -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
@@ -157,7 +159,7 @@ class Compile sub dom
     --    -> ((Name -> Proc ()) -> Proc ())
         -> Args (AST (Decor Info dom)) a
         -- -> CodeWriter (Expression ())
-        -> CodeWriter Expr
+        -> Alias -> Expr --CodeWriter Expr
     compileExprSym = error "default: compileExprSym" --compileProgFresh
 
 instance (Compile sub1 dom, Compile sub2 dom) =>
@@ -176,15 +178,15 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
 compileExprLoc :: Compile sub dom
     => sub a
     -> Info (DenResult a)
-    -- -> Location
     -> ((Name -> Proc ()) -> Proc ())
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
-compileExprLoc a info args = do
+compileExprLoc a info k args m =
+    let expr = compileExprSym a info args m
+    in k $ \name -> ProcBody $ loc name expr
     --expr <- compileExprSym a info args
     --assign loc expr
     --tellProg $ Statement $ expr
-    error "compileExprLoc"
 --
 ---- | Implementation of 'compileProgSym' that generates code into a fresh
 ---- variable.
@@ -312,13 +314,13 @@ compileTypeRep (IntType s n) _           = TInt --compileNumType s n
 --compileTypeRep (MutType a) _            = compileTypeRep a (defaultSize a)
 --compileTypeRep (RefType a) _            = compileTypeRep a (defaultSize a)
 compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es
---compileTypeRep (Core.ArrayType a) (rs :> es) = Pointer $ ArrayType rs $ compileTypeRep a es
+compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es--TPointer $ ArrayType rs $ compileTypeRep a es
 --compileTypeRep (MArrType a) (rs :> es)  = Pointer $ ArrayType rs $ compileTypeRep a es
 --compileTypeRep (ParType a) _            = compileTypeRep a (defaultSize a)
 --compileTypeRep (Core.IVarType a) _      = IVarType $ compileTypeRep a $ defaultSize a
 --compileTypeRep (FunType _ b) (_, sz)    = compileTypeRep b sz
 --compileTypeRep (FValType a) sz          = IVarType $ compileTypeRep a sz
---compileTypeRep typ _                    = error $ "compileTypeRep: missing " ++ show typ  -- TODO
+compileTypeRep typ _                    = error $ "compileTypeRep: missing " ++ show typ  -- TODO
 --
 ---- | Construct a variable.
 --mkVar :: Type -> VarId -> Expression ()

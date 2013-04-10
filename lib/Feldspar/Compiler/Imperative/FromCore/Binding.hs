@@ -38,6 +38,8 @@ module Feldspar.Compiler.Imperative.FromCore.Binding where
 import Data.Typeable
 
 import Control.Monad.RWS
+import qualified Data.Map as M
+import Data.Maybe
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding.HigherOrder
@@ -56,7 +58,9 @@ import Program
 
 instance Compile (Core.Variable :|| Type) dom
   where
-    compileExprSym (C' (Core.Variable v)) info Nil = error "Binding: CompileExprSym." --return $ var ('v':show v)
+    compileExprSym (C' (Core.Variable v)) info Nil m = var $ variable
+      where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+        --error "Binding: CompileExprSym." --return $ var ('v':show v)
         --env <- ask
         --case lookup v (alias env) of
         --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v

@@ -63,7 +63,6 @@ instance Compile (Literal :|| Core.Type) dom
 --
     compileProgSym (C' (Literal a)) info k Nil m = k $ \name -> ProcBody $ loc name ((literal (infoType info) (infoSize info) a))
     
-    --Alloc PIRE.TInt [] $ \lhs arr -> lhs [] (literal (infoType info) (infoSize info) a)
 
 --error "compileProgSym for Literal undefined."
 --tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a

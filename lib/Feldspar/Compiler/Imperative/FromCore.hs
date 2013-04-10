@@ -130,12 +130,12 @@ compileProgTop :: ( Compile dom dom
           [(VarId, ASTB (Decor Info dom) Type)] ->
           ((Name -> Proc ()) -> Proc ()) ->
           ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgTop bs k (lam :$ body)
+compileProgTop bs k (lam :$ body) m
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
     = do let ta  = argType $ infoType $ getInfo lam
              sa  = fst $ infoSize $ getInfo lam
              typ = compileTypeRep ta sa
-         error "compileTop"
+         NewParam typ $ \name -> compileProgTop bs k body (M.insert v name m)
          --p <- compileProgTop bs k body
 
          --return $ NewParam typ $ \name -> let (a,_,_) = runRWS (withAlias v name $ compileProgTop bs k body) initReader initState
@@ -149,7 +149,7 @@ compileProgTop bs k (lam :$ body)
          --tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v) -- this will be translated to Nil later on by
          ----withAlias v (varToExpr arg) $
          --compileProgTop bs body
-compileProgTop bs k (lt :$ e :$ (lam :$ body))
+compileProgTop bs k (lt :$ e :$ (lam :$ body)) m
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam
   , Just Let <- prj lt
   , Just (C' Literal{}) <- prjF e -- Input on form let x = n in e
@@ -167,7 +167,7 @@ compileProgTop bs k (lt :$ e :$ (lam :$ body))
 --               Just (SubConstr2 (Lambda v)) -> mkVariable outType v
 --    bd = sequenceProgs $ blockBody $ block $ snd $
 --          evalRWS (compileProg (varToExpr var) e) (initReader opt) initState
-compileProgTop bs k e@(lt :$ _ :$ _)
+compileProgTop bs k e@(lt :$ _ :$ _) m
   | Just Let <- prj lt
   , (bs', body) <- collectLetBinders e
   = error "compielProgTop: letBinding without lambda NYI." --compileProgTop (reverse bs' ++ bs) body
@@ -181,18 +181,23 @@ compileProgTop bs k e@(lt :$ _ :$ _)
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs k a = compileProg k a --error "compileProgTop"
+compileProgTop bs k a m = compileProg k a m
+--    mapM compileBind (reverse bs)
+--    compileProg outLoc a
+--    return outParam
+
+--compileProg k a m--error "compileProgTop"
 
 
---fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
---fromCore opt funname prog = Module defs
-fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
+fromCore :: SyntacticFeld a => a -> IO ()
 fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
   where
-    result = compileProgTop [] (OutParam PIRE.TInt) ast M.empty
+    result = compileProgTop [] outParam ast M.empty
 --    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
+    outParam   = OutParam typ
+    typ        = PIRE.TPointer PIRE.TInt
 
 
     --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState

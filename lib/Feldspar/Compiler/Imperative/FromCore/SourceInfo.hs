@@ -48,7 +48,7 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance Compile dom dom => Compile (Decor SourceInfo1 Identity :|| Type) dom
   where
-    compileProgSym (C' (Decor (SourceInfo1 info) Id)) _ (a :* Nil) = error "SourceInfo" --do
+    compileProgSym (C' (Decor (SourceInfo1 info) Id)) _ k (a :* Nil) = error "SourceInfo" --do
 --        tellProg [Comment True info]
 --        compileProg loc a
 --    compileExprSym (C' (Decor (SourceInfo1 info) Id)) _ (a :* Nil) = do

@@ -72,7 +72,7 @@ instance ( Compile dom dom
          )
       => Compile (Array :|| Type) dom
   where
-    compileProgSym (C' Parallel) _ (len :* (lam :$ ixf) :* Nil) = error "Parallel."
+    compileProgSym (C' Parallel) _ k (len :* (lam :$ ixf) :* Nil) = error "Parallel."
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
 --        = do  let ta = argType $ infoType $ getInfo lam
 --              tellProg $ 

@@ -181,7 +181,7 @@ compileProgTop bs k e@(lt :$ _ :$ _)
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs k a = compileProg a --error "compileProgTop"
+compileProgTop bs k a = compileProg k a --error "compileProgTop"
 
 
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()

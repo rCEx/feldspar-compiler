@@ -77,10 +77,10 @@ import Procedure as PIRE
 -- | Code generation monad
 type CodeWriter a = M.Map VarId Name -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
-data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
+--data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
                       -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
                       -- , backendOpts :: Options -- ^ Options for the backend.
-                       }
+--                       }
 
 --initReader :: Options -> Readers
 --initReader :: Readers
@@ -146,7 +146,7 @@ class Compile sub dom
     compileProgSym
         :: sub a
         -> Info (DenResult a)
-    --    -> Location
+        -> ((Name -> Proc ()) -> Proc ())
         -> Args (AST (Decor Info dom)) a
         -> CodeWriter ()
     compileProgSym = compileExprLoc
@@ -154,6 +154,7 @@ class Compile sub dom
     compileExprSym -- Function args.
         :: sub a
         -> Info (DenResult a)
+    --    -> ((Name -> Proc ()) -> Proc ())
         -> Args (AST (Decor Info dom)) a
         -- -> CodeWriter (Expression ())
         -> CodeWriter Expr
@@ -176,6 +177,7 @@ compileExprLoc :: Compile sub dom
     => sub a
     -> Info (DenResult a)
     -- -> Location
+    -> ((Name -> Proc ()) -> Proc ())
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
 compileExprLoc a info args = do
@@ -205,26 +207,27 @@ compileDecor info action = do
     action
 --
 compileProgDecor :: Compile dom dom
-    => --Location
-    Decor Info dom a
+    => ((Name -> Proc ()) -> Proc ())
+    -> Decor Info dom a
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
-compileProgDecor (Decor info a) args =
-    compileDecor info $ compileProgSym a info args
+compileProgDecor k (Decor info a) args =
+    compileDecor info $ compileProgSym a info k args
 --
 compileExprDecor :: Compile dom dom
-    => Decor Info dom a
-    -> Args (AST (Decor Info dom)) a
+    => ((Name -> Proc ()) -> Proc ())
+    -> Decor Info dom a
     -> CodeWriter Expr
-compileExprDecor (Decor info a) args =
-    compileDecor info $ compileExprSym a info args
+compileExprDecor k (Decor info a) args = error "compileExprDecor"
+--    compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
-    ASTF (Decor Info dom) a -> CodeWriter ()
-compileProg ast = simpleMatch (compileProgDecor) ast
+    ((Name -> Proc ()) -> Proc ())
+    -> ASTF (Decor Info dom) a -> CodeWriter ()
+compileProg k ast = simpleMatch (compileProgDecor k) ast
 --
 compileExpr :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter Expr
-compileExpr = simpleMatch compileExprDecor
+compileExpr = error "compileExpr" --simpleMatch compileExprDecor
 --
 ---- Compile an expression and make sure that the result is stored in a variable
 --compileExprVar :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter (Expression ())

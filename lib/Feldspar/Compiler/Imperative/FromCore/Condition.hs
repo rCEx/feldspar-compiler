@@ -48,7 +48,7 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   where
-  compileProgSym (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) = error "compileProgSym" --do
+  compileProgSym (C' Condition) _ k (cond :* tHEN :* eLSE :* Nil) = error "compileProgSym" --do
 --        condExpr <- compileExpr cond
 --        (_, tb) <- confiscateBlock $ compileProg loc tHEN
 --        (_, eb) <- confiscateBlock $ compileProg loc eLSE

@@ -75,7 +75,7 @@ import Types as PIRE
 import Procedure as PIRE
 
 -- | Code generation monad
-type CodeWriter = RWS Readers () States --(Program ())--RWS Readers Writers StatesA
+type CodeWriter a = M.Map VarId Name -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
 data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
                       -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
@@ -83,17 +83,17 @@ data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable
                        }
 
 --initReader :: Options -> Readers
-initReader :: Readers
-initReader = Readers []
+--initReader :: Readers
+--initReader = Readers []
+----
 --
-
-data Writers = Writers-- { proc    :: Proc ()
-                      -- , program :: Program ()
-                      -- }
-
-instance Monoid Writers where
-  mempty = error "mempty undefined for Writers."--Writers mempty mempty
-  mappend a b = error "mappend undefined for Writers." --Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
+--data Writers = Writers-- { proc    :: Proc ()
+--                      -- , program :: Program ()
+--                      -- }
+--
+--instance Monoid Writers where
+--  mempty = error "mempty undefined for Writers."--Writers mempty mempty
+--  mappend a b = error "mappend undefined for Writers." --Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
 
 
 --analyzeProc :: Proc () -> Proc ()
@@ -448,8 +448,10 @@ compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es
 --    $ listen m
 --
 --withAlias :: VarId -> Expression () -> CodeWriter a -> CodeWriter a
+--withAlias :: VarId -> Name -> CodeWriter a -> CodeWriter a
+--withAlias v0 name = local (\e -> e {alias = (v0,name) : alias e})
 withAlias :: VarId -> Name -> CodeWriter a -> CodeWriter a
-withAlias v0 name = local (\e -> e {alias = (v0,name) : alias e})
+withAlias v0 name m = error "withAlias"
 --
 --isVariableOrLiteral :: ( Project (Core.Variable :|| Core.Type) dom
 --                       , Project (Core.Literal  :|| Core.Type) dom)

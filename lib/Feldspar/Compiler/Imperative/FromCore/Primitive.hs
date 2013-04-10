@@ -62,10 +62,13 @@ import Debug.Trace
 -- | Converts symbols to primitive function calls
 instance Compile dom dom => Compile Semantics dom
   where
-    compileExprSym (Sem name _) info args = do
-        argExprs <- sequence $ listArgs compileExpr args
+    compileExprSym (Sem name _) info args = error "Primitive."
+
+        --argExprs <- sequence $ listArgs compileExpr args
+        --return $ Call (var name) argExprs
+
+
         --return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
-        return $ Call (var name) argExprs
 --
 ---- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)

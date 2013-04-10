@@ -39,10 +39,10 @@ module Feldspar.Compiler.Imperative.FromCore where
 
 import Data.List (nub)
 import Data.Typeable
+import qualified Data.Map as M
 
 import Control.Monad.RWS
 import Control.Monad.Writer
-import Control.Monad
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
@@ -129,12 +129,13 @@ compileProgTop :: ( Compile dom dom
                   ) =>
           [(VarId, ASTB (Decor Info dom) Type)] ->
           ((Name -> Proc ()) -> Proc ()) ->
-          ASTF (Decor Info dom) a -> CodeWriter (Proc ())
+          ASTF (Decor Info dom) a -> CodeWriter ()
 compileProgTop bs k (lam :$ body)
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
     = do let ta  = argType $ infoType $ getInfo lam
              sa  = fst $ infoSize $ getInfo lam
              typ = compileTypeRep ta sa
+         error "compileTop"
          --p <- compileProgTop bs k body
 
          --return $ NewParam typ $ \name -> let (a,_,_) = runRWS (withAlias v name $ compileProgTop bs k body) initReader initState
@@ -180,7 +181,7 @@ compileProgTop bs k e@(lt :$ _ :$ _)
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs k a = compileProg a  >> return PIRE.Nil--error "compileProgTop"
+compileProgTop bs k a = error "compileProgTop base case"--compileProg a  >> return PIRE.Nil--error "compileProgTop"
 
 
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
@@ -188,7 +189,8 @@ compileProgTop bs k a = compileProg a  >> return PIRE.Nil--error "compileProgTop
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
 fromCore prog = PIRE.showProg $ PIRE.gen $ result
   where
-    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState
+    result = compileProgTop [] (OutParam PIRE.TInt) ast M.empty
+--    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
 

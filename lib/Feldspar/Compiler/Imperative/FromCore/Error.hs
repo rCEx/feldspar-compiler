@@ -53,7 +53,7 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance (Compile dom dom) => Compile (Error :|| Type) dom
   where
-    compileProgSym (C' Undefined)    _   Nil = return ()
+    compileProgSym (C' Undefined)    _   Nil = error "Error compileProgSym"--return ()
 --    compileProgSym (C' (Assert msg)) _ loc (cond :* a :* Nil) = do
 --        compileAssert cond msg
 --        compileProg loc a

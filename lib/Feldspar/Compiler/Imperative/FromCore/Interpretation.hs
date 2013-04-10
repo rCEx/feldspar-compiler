@@ -269,7 +269,7 @@ compileExpr = simpleMatch compileExprDecor
 --compileTypeRep :: TypeRep a -> Core.Size a -> Type
 compileTypeRep :: TypeRep a -> Core.Size a -> PIRE.Type
 --compileTypeRep UnitType _                = VoidType
---compileTypeRep Core.BoolType _           = BoolType
+compileTypeRep Core.BoolType _           = TInt--BoolType
 compileTypeRep (IntType s n) _           = TInt --compileNumType s n
 --compileTypeRep Core.FloatType _          = FloatType
 --compileTypeRep (Core.ComplexType t) _    = ComplexType (compileTypeRep t (defaultSize t))

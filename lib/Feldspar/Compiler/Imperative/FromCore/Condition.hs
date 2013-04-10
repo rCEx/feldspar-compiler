@@ -34,6 +34,8 @@
 
 module Feldspar.Compiler.Imperative.FromCore.Condition where
 
+import Program 
+import Procedure
 
 import Language.Syntactic
 
@@ -48,7 +50,12 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   where
-  compileProgSym (C' Condition) _ k (cond :* tHEN :* eLSE :* Nil) = error "compileProgSym" --do
+  compileProgSym (C' Condition) _ k (cond :* tHEN :* eLSE :* Nil) m = 
+        let c = compileExpr cond m
+            t = compileProg k tHEN m
+            f = compileProg k eLSE m
+        in k $ \name -> ProcBody $ iff c undefined undefined--t f
+          --do
 --        condExpr <- compileExpr cond
 --        (_, tb) <- confiscateBlock $ compileProg loc tHEN
 --        (_, eb) <- confiscateBlock $ compileProg loc eLSE

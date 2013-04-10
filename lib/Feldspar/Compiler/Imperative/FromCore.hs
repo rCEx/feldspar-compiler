@@ -181,13 +181,13 @@ compileProgTop bs k e@(lt :$ _ :$ _)
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs k a = error "compileProgTop base case"--compileProg a  >> return PIRE.Nil--error "compileProgTop"
+compileProgTop bs k a = compileProg a --error "compileProgTop"
 
 
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ result
+fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
   where
     result = compileProgTop [] (OutParam PIRE.TInt) ast M.empty
 --    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState

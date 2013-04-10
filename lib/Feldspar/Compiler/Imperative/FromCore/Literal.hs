@@ -54,12 +54,17 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Expr        as PIRE
 import Program     as PIRE
 import Combinators as PIRE
+import qualified Types as PIRE
+import Procedure as PIRE
 
 instance Compile (Literal :|| Core.Type) dom
   where
     compileExprSym (C' (Literal a)) info Nil = error "Literal "--return $ literal (infoType info) (infoSize info) a
 --
-    compileProgSym (C' (Literal a)) info Nil = error "compileProgSym for Literal undefined." --tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
+    compileProgSym (C' (Literal a)) info Nil m = ProcBody $ Alloc PIRE.TInt [] $ \lhs arr -> lhs [] (literal (infoType info) (infoSize info) a)
+
+--error "compileProgSym for Literal undefined."
+--tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
     -- literalLoc (infoType info) (infoSize info) a
 --
 

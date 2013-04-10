@@ -127,12 +127,13 @@ instance Monoid Writers where
 --                          , epilogue = mappend (epilogue a) (epilogue b)
 --                          }
 --
-data States = States { proc :: (Name -> Proc ()) -> Proc()}
+data States = States --{ proc :: (Name -> Proc ()) -> Proc ()}
                      
 --data States = States { fresh :: VarId -- ^ The first fresh variable id
 --                     }
 --
-initState :: ((Name -> Proc ()) -> Proc ()) -> States
+initState :: States
+--initState :: States
 initState = States
 --
 ---- | Where to place the program result
@@ -447,8 +448,8 @@ compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es
 --    $ listen m
 --
 --withAlias :: VarId -> Expression () -> CodeWriter a -> CodeWriter a
---withAlias v0 expr =
---  local (\e -> e {alias = (v0,expr) : alias e})
+withAlias :: VarId -> Name -> CodeWriter a -> CodeWriter a
+withAlias v0 name = local (\e -> e {alias = (v0,name) : alias e})
 --
 --isVariableOrLiteral :: ( Project (Core.Variable :|| Core.Type) dom
 --                       , Project (Core.Literal  :|| Core.Type) dom)

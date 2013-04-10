@@ -42,6 +42,7 @@ import Data.Typeable
 
 import Control.Monad.RWS
 import Control.Monad.Writer
+import Control.Monad
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
@@ -111,6 +112,15 @@ instance Compile Empty dom
 
 
 
+--compileProgTop :: ( Compile dom dom
+--                  , Project (CLambda Type) dom
+--                  , Project Let dom
+--                  , Project (Literal :|| Type) dom
+--                  , ConstrainedBy dom Typeable
+--                  ) =>
+--          [(VarId, ASTB (Decor Info dom) Type)] ->
+--          ASTF (Decor Info dom) a -> CodeWriter ()
+
 compileProgTop :: ( Compile dom dom
                   , Project (CLambda Type) dom
                   , Project Let dom
@@ -118,12 +128,18 @@ compileProgTop :: ( Compile dom dom
                   , ConstrainedBy dom Typeable
                   ) =>
           [(VarId, ASTB (Decor Info dom) Type)] ->
-          ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgTop bs (lam :$ body)
+          ((Name -> Proc ()) -> Proc ()) ->
+          ASTF (Decor Info dom) a -> CodeWriter (Proc ())
+compileProgTop bs k (lam :$ body)
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do error "compileProgTop Lambda" --let ta  = argType $ infoType $ getInfo lam
-         --    sa  = fst $ infoSize $ getInfo lam
-         --    typ = compileTypeRep ta sa
+    = do let ta  = argType $ infoType $ getInfo lam
+             sa  = fst $ infoSize $ getInfo lam
+             typ = compileTypeRep ta sa
+         --p <- compileProgTop bs k body
+
+         --return $ NewParam typ $ \name -> let (a,_,_) = runRWS (withAlias v name $ compileProgTop bs k body) initReader initState
+         --                                 in a
+
          --    --arg = if isComposite typ
          --    --        then mkPointer  typ v
          --    --        else mkVariable typ v
@@ -132,7 +148,7 @@ compileProgTop bs (lam :$ body)
          --tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v) -- this will be translated to Nil later on by
          ----withAlias v (varToExpr arg) $
          --compileProgTop bs body
-compileProgTop bs (lt :$ e :$ (lam :$ body))
+compileProgTop bs k (lt :$ e :$ (lam :$ body))
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam
   , Just Let <- prj lt
   , Just (C' Literal{}) <- prjF e -- Input on form let x = n in e
@@ -150,7 +166,7 @@ compileProgTop bs (lt :$ e :$ (lam :$ body))
 --               Just (SubConstr2 (Lambda v)) -> mkVariable outType v
 --    bd = sequenceProgs $ blockBody $ block $ snd $
 --          evalRWS (compileProg (varToExpr var) e) (initReader opt) initState
-compileProgTop bs e@(lt :$ _ :$ _)
+compileProgTop bs k e@(lt :$ _ :$ _)
   | Just Let <- prj lt
   , (bs', body) <- collectLetBinders e
   = error "compielProgTop: letBinding without lambda NYI." --compileProgTop (reverse bs' ++ bs) body
@@ -164,19 +180,21 @@ compileProgTop bs e@(lt :$ _ :$ _)
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs a = compileProg a --error "compileProgTop"
+compileProgTop bs k a = compileProg a  >> return PIRE.Nil--error "compileProgTop"
 
 
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ (proc s) $ \name -> PIRE.Nil
---mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ -> PIRE.Nil) (analyzeProc $ proc result)) (ProcBody (program result))
+fromCore prog = PIRE.showProg $ PIRE.gen $ result
   where
-    (_,s,w) = runRWS (compileProgTop [] ast) initReader (initState $ const PIRE.Nil)
-    --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState
+    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
+
+
+    --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState
+
 --    decls      = decl results
 --    ins        = args results
 --    post       = epilogue results

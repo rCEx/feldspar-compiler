@@ -217,19 +217,20 @@ compileProgDecor k (Decor info a) args =
     compileDecor info $ compileProgSym a info k args
 --
 compileExprDecor :: Compile dom dom
-    => ((Name -> Proc ()) -> Proc ())
-    -> Decor Info dom a
-    -> CodeWriter Expr
-compileExprDecor k (Decor info a) args = error "compileExprDecor"
---    compileDecor info $ compileExprSym a info args
+    => Decor Info dom a
+    -> Args (AST (Decor Info dom)) a
+    -> Alias -> Expr --CodeWriter Expr
+compileExprDecor (Decor info a) args = compileExprSym a info args --compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
     ((Name -> Proc ()) -> Proc ())
     -> ASTF (Decor Info dom) a -> CodeWriter ()
 compileProg k ast = simpleMatch (compileProgDecor k) ast
 --
-compileExpr :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter Expr
-compileExpr = error "compileExpr" --simpleMatch compileExprDecor
+compileExpr :: Compile dom dom => 
+--((Name -> Proc ()) -> Proc ()) ->
+  ASTF (Decor Info dom) a -> Alias -> Expr
+compileExpr = simpleMatch compileExprDecor
 --
 ---- Compile an expression and make sure that the result is stored in a variable
 --compileExprVar :: Compile dom dom => ASTF (Decor Info dom) a -> CodeWriter (Expression ())

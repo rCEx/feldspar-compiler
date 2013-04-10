@@ -57,13 +57,12 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 import Expr
 
-import Debug.Trace
-
 -- | Converts symbols to primitive function calls
 instance Compile dom dom => Compile Semantics dom
   where
-    compileExprSym (Sem name _) info args = error "Primitive."
-
+    compileExprSym (Sem name _) info args m =
+        let argExprs = listArgs (flip compileExpr m) args
+        in Call (var name) argExprs
         --argExprs <- sequence $ listArgs compileExpr args
         --return $ Call (var name) argExprs
 
@@ -75,8 +74,7 @@ compilePrim :: (Semantic expr, Compile dom dom)
     => (expr :|| Type) a
     -> Info (DenResult a)
     -> Args (AST (Decor Info dom)) a
-    -- -> CodeWriter (Expression ())
-    -> Alias -> Expr --CodeWriter Expr
+    -> Alias -> Expr
 compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim

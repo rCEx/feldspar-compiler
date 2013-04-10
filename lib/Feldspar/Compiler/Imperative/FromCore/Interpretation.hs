@@ -74,6 +74,10 @@ import Expr
 import Types as PIRE
 import Procedure as PIRE
 
+
+
+
+
 -- | Code generation monad
 type CodeWriter a = Alias -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
@@ -83,6 +87,13 @@ type Alias = M.Map VarId Name
                       -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
                       -- , backendOpts :: Options -- ^ Options for the backend.
 --                       }
+
+toProg :: Proc a -> String -> Program a
+toProg (ProcBody p) _ = p
+toProg NilProc      _ = error "NilProc"
+toProg (OutParam t k) n = toProg (k n) n
+toProg (NewParam t k) n = toProg (k n) n
+toProg _ _ = error "iff' undefined."
 
 --initReader :: Options -> Readers
 --initReader :: Readers
@@ -161,7 +172,6 @@ class Compile sub dom
         -- -> CodeWriter (Expression ())
         -> Alias -> Expr --CodeWriter Expr
     compileExprSym = error "default: compileExprSym" --compileProgFresh
-
 instance (Compile sub1 dom, Compile sub2 dom) =>
     Compile (sub1 :+: sub2) dom
   where
@@ -194,8 +204,9 @@ compileExprLoc a info k args m =
 --    => sub a
 --    -> Info (DenResult a)
 --    -> Args (AST (Decor Info dom)) a
---    -> CodeWriter (Expression ())
---compileProgFresh a info args = do
+--    -> CodeWriter () --CodeWriter (Expression ())
+--compileProgFresh a info args m
+--do
 --    loc <- --freshVar "e" (infoType info) (infoSize info)
 --    compileProgSym a info loc args
 --    return loc
@@ -463,20 +474,22 @@ compileTypeRep typ _                    = error $ "compileTypeRep: missing " ++ 
 withAlias :: VarId -> Name -> CodeWriter a -> CodeWriter a
 withAlias v0 name m = error "withAlias"
 --
---isVariableOrLiteral :: ( Project (Core.Variable :|| Core.Type) dom
---                       , Project (Core.Literal  :|| Core.Type) dom)
---                    => AST (Decor info dom) a -> Bool
---isVariableOrLiteral (prjF -> Just (C' (Core.Literal  _))) = True
---isVariableOrLiteral (prjF -> Just (C' (Core.Variable _))) = True
---isVariableOrLiteral _                                     = False
+isVariableOrLiteral :: ( Project (Core.Variable :|| Core.Type) dom
+                       , Project (Core.Literal  :|| Core.Type) dom)
+                    => AST (Decor info dom) a -> Bool
+isVariableOrLiteral (prjF -> Just (C' (Core.Literal  _))) = True
+isVariableOrLiteral (prjF -> Just (C' (Core.Variable _))) = True
+isVariableOrLiteral _                                     = False
 --
---mkLength :: ( Project (Core.Literal  :|| Core.Type) dom
---            , Project (Core.Variable :|| Core.Type) dom
---            , Compile dom dom
---            )
---         => ASTF (Decor Info dom) a -> TypeRep a -> Core.Size a -> CodeWriter (Expression ())
---mkLength a t sz 
---  | isVariableOrLiteral a = compileExpr a
+mkLength :: ( Project (Core.Literal  :|| Core.Type) dom
+            , Project (Core.Variable :|| Core.Type) dom
+            , Compile dom dom
+            )
+         => ASTF (Decor Info dom) a -> TypeRep a -> Core.Size a -> Alias -> Expr --CodeWriter (Expression ())
+mkLength a t sz m
+  | isVariableOrLiteral a = compileExpr a m
+  | otherwise = error "mkLenth" --k $ \name -> compileProg k a m
+
 --  | otherwise             = do
 --      lenvar    <- freshVar "len" t sz
 --      compileProg lenvar a

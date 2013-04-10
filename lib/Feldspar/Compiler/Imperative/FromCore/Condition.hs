@@ -56,12 +56,7 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
             f = compileProg k eLSE m
         in k $ \name -> ProcBody $ iff c (toProg t name) (toProg f name)
 
-toProg :: Proc a -> String -> Program a
-toProg (ProcBody p) _ = p
-toProg NilProc      _ = error "NilProc"
-toProg (OutParam t k) n = toProg (k n) n
-toProg (NewParam t k) n = toProg (k n) n
-toProg _ _ = error "iff' undefined."
+
           --do
 --        condExpr <- compileExpr cond
 --        (_, tb) <- confiscateBlock $ compileProg loc tHEN

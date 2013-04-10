@@ -219,16 +219,15 @@ compileProgDecor k (Decor info a) args =
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
     -> Args (AST (Decor Info dom)) a
-    -> Alias -> Expr --CodeWriter Expr
+    -> Alias -> Expr
 compileExprDecor (Decor info a) args = compileExprSym a info args --compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
     ((Name -> Proc ()) -> Proc ())
     -> ASTF (Decor Info dom) a -> CodeWriter ()
 compileProg k ast = simpleMatch (compileProgDecor k) ast
---
+
 compileExpr :: Compile dom dom => 
---((Name -> Proc ()) -> Proc ()) ->
   ASTF (Decor Info dom) a -> Alias -> Expr
 compileExpr = simpleMatch compileExprDecor
 --

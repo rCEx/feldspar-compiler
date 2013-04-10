@@ -59,7 +59,7 @@ instance Compile (Literal :|| Core.Type) dom
   where
     compileExprSym (C' (Literal a)) info Nil = return $ literal (infoType info) (infoSize info) a
 --
-    compileProgSym (C' (Literal a)) info Nil = tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
+    compileProgSym (C' (Literal a)) info Nil = error "compileProgSym for Literal undefined." --tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
     -- literalLoc (infoType info) (infoSize info) a
 --
 

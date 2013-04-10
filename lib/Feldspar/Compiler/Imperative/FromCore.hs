@@ -48,7 +48,7 @@ import Language.Syntactic.Constructs.Binding
 import Language.Syntactic.Constructs.Binding.HigherOrder
 
 import Feldspar.Core.Types
-import Feldspar.Core.Interpretation
+import Feldspar.Core.Interpretation as Interp
 import Feldspar.Core.Constructs
 import Feldspar.Core.Constructs.Literal
 import Feldspar.Core.Constructs.Binding
@@ -121,17 +121,17 @@ compileProgTop :: ( Compile dom dom
           ASTF (Decor Info dom) a -> CodeWriter ()
 compileProgTop bs (lam :$ body)
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do let ta  = argType $ infoType $ getInfo lam
-             sa  = fst $ infoSize $ getInfo lam
-             typ = compileTypeRep ta sa
-             --arg = if isComposite typ
-             --        then mkPointer  typ v
-             --        else mkVariable typ v
-        -- tell $ mempty {args=[arg]}
-         --tellProc $ NewParam typ (\n -> PIRE.Nil)
-         tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v) -- this will be translated to Nil later on by
-         --withAlias v (varToExpr arg) $
-         compileProgTop bs body
+    = do error "compileProgTop Lambda" --let ta  = argType $ infoType $ getInfo lam
+         --    sa  = fst $ infoSize $ getInfo lam
+         --    typ = compileTypeRep ta sa
+         --    --arg = if isComposite typ
+         --    --        then mkPointer  typ v
+         --    --        else mkVariable typ v
+        ---- tell $ mempty {args=[arg]}
+         ----tellProc $ NewParam typ (\n -> PIRE.Nil)
+         --tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v) -- this will be translated to Nil later on by
+         ----withAlias v (varToExpr arg) $
+         --compileProgTop bs body
 compileProgTop bs (lt :$ e :$ (lam :$ body))
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam
   , Just Let <- prj lt
@@ -170,9 +170,11 @@ compileProgTop bs a = compileProg a --error "compileProgTop"
 --fromCore :: SyntacticFeld a => Options -> String -> a -> Module ()
 --fromCore opt funname prog = Module defs
 fromCore :: SyntacticFeld a => a -> IO ()--Proc () --Program ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ -> PIRE.Nil) (analyzeProc $ proc result)) (ProcBody (program result))
+fromCore prog = PIRE.showProg $ PIRE.gen $ (proc s) $ \name -> PIRE.Nil
+--mappend (mappend (BasicProc $ OutParam PIRE.TInt $ \_ -> PIRE.Nil) (analyzeProc $ proc result)) (ProcBody (program result))
   where
-    (_,result) = evalRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState
+    (_,s,w) = runRWS (compileProgTop [] ast) initReader (initState $ const PIRE.Nil)
+    --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
 --    decls      = decl results

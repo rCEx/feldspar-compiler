@@ -75,32 +75,33 @@ import Types as PIRE
 import Procedure as PIRE
 
 -- | Code generation monad
-type CodeWriter = RWS () Writers States --(Program ())--RWS Readers Writers StatesA
+type CodeWriter = RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
---data Readers = Readers { alias :: [(VarId, Expression ())] -- ^ variable aliasing
---                       , sourceInfo :: SourceInfo -- ^ Surrounding source info
---                       , backendOpts :: Options -- ^ Options for the backend.
---                       }
-
---initReader :: Options -> Readers
---initReader = Readers [] ""
---
-
-data Writers = Writers { proc    :: Proc ()
-                       , program :: Program ()
+data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
+                      -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
+                      -- , backendOpts :: Options -- ^ Options for the backend.
                        }
 
+--initReader :: Options -> Readers
+initReader :: Readers
+initReader = Readers []
+--
+
+data Writers = Writers-- { proc    :: Proc ()
+                      -- , program :: Program ()
+                      -- }
+
 instance Monoid Writers where
-  mempty = Writers mempty mempty
-  mappend a b = Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
+  mempty = error "mempty undefined for Writers."--Writers mempty mempty
+  mappend a b = error "mappend undefined for Writers." --Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
 
 
-analyzeProc :: Proc () -> Proc ()
---analyzeProc PIRE.Nil       = PIRE.Nil
-analyzeProc (BasicProc p)  = BasicProc (analyzeProc p)
-analyzeProc (ProcBody p)   = PIRE.Nil
-analyzeProc (NewParam t k) = NewParam t $ \n -> analyzeProc $ k n
-analyzeProc p              = p
+--analyzeProc :: Proc () -> Proc ()
+----analyzeProc PIRE.Nil       = PIRE.Nil
+--analyzeProc (BasicProc p)  = BasicProc (analyzeProc p)
+--analyzeProc (ProcBody p)   = PIRE.Nil
+--analyzeProc (NewParam t k) = NewParam t $ \n -> analyzeProc $ k n
+--analyzeProc p              = p
 
 
 
@@ -126,12 +127,12 @@ analyzeProc p              = p
 --                          , epilogue = mappend (epilogue a) (epilogue b)
 --                          }
 --
-data States = States
+data States = States { proc :: (Name -> Proc ()) -> Proc()}
                      
 --data States = States { fresh :: VarId -- ^ The first fresh variable id
 --                     }
 --
-initState :: States
+initState :: ((Name -> Proc ()) -> Proc ()) -> States
 initState = States
 --
 ---- | Where to place the program result
@@ -177,9 +178,10 @@ compileExprLoc :: Compile sub dom
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
 compileExprLoc a info args = do
-    expr <- compileExprSym a info args
+    --expr <- compileExprSym a info args
     --assign loc expr
-    tellProg $ Statement $ expr
+    --tellProg $ Statement $ expr
+    error "compileExprLoc"
 --
 ---- | Implementation of 'compileProgSym' that generates code into a fresh
 ---- variable.
@@ -366,11 +368,11 @@ compileTypeRep (Core.ArrayType a) (rs :> es) = TPointer $ compileTypeRep a es
 --tellDef es = tell $ mempty {def = es}
 --
 
-tellProg :: Program () -> CodeWriter ()
-tellProg prg = tell $ mempty {program = prg}
-
-tellProc :: Proc () -> CodeWriter ()
-tellProc prc = tell $ mempty {proc = prc}
+--tellProg :: Program () -> CodeWriter ()
+--tellProg prg = tell $ mempty {program = prg}
+--
+--tellProc :: Proc () -> CodeWriter ()
+--tellProc prc = tell $ mempty {proc = prc}
 
 
 --tellProg :: [Program ()] -> CodeWriter ()

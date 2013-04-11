@@ -93,7 +93,7 @@ toProg (ProcBody p) _ = p
 toProg NilProc      _ = error "NilProc"
 toProg (OutParam t k) n = toProg (k n) n
 toProg (NewParam t k) n = toProg (k n) n
-toProg _ _ = error "iff' undefined."
+toProg _ _ = error "toProg undefined for Proc type"
 
 --initReader :: Options -> Readers
 --initReader :: Readers

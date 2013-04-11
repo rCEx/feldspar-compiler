@@ -61,6 +61,7 @@ import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 import Program
 import Expr
 import Procedure
+import qualified Types as PIRE
 
 instance ( Compile dom dom
          , Project (CLambda Type) dom
@@ -79,8 +80,9 @@ instance ( Compile dom dom
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta 
-               len' = mkLength len (infoType $ getInfo len) sa m
-               in k $ \name -> ProcBody $ for (Num 0) len' $ \e -> loc name e--compileProg ixf m
+               --len' = mkLength len (infoType $ getInfo len) sa m
+               in k $ \name -> compileProg k len m
+                --for (Num 0) len' $ \e -> loc name e--compileProg ixf m
                --mkLength len (infoType $ getInfo len) sa k m
            --in k $ \name -> procbody $ for (num 0) (num 25) $ \e -> loc name e--compileprog ixf m
 --        = do  let ta = argType $ infoType $ getInfo lam

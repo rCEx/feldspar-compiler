@@ -95,31 +95,14 @@ instance Compile FeldDom FeldDom
   where
     compileProgSym (C' a) = compileProgSym a 
     compileExprSym (C' a) = compileExprSym a
---
+
 instance Compile Empty dom
   where
     compileProgSym _ = error "Can't compile Empty"
     compileExprSym _ = error "Can't compile Empty"
 
---compileProgTop :: ( Compile dom dom
---                  , Project (CLambda Type) dom
---                  , Project Let dom
---                  , Project (Literal :|| Type) dom
---                  , ConstrainedBy dom Typeable
---                  ) =>
---    Options -> String -> [(VarId, ASTB (Decor Info dom) Type)] ->
---   ASTF (Decor Info dom) a -> CodeWriter (Rep.Variable ())
 
 
-
---compileProgTop :: ( Compile dom dom
---                  , Project (CLambda Type) dom
---                  , Project Let dom
---                  , Project (Literal :|| Type) dom
---                  , ConstrainedBy dom Typeable
---                  ) =>
---          [(VarId, ASTB (Decor Info dom) Type)] ->
---          ASTF (Decor Info dom) a -> CodeWriter ()
 
 compileProgTop :: ( Compile dom dom
                   , Project (CLambda Type) dom
@@ -136,19 +119,7 @@ compileProgTop bs k (lam :$ body) m
              sa  = fst $ infoSize $ getInfo lam
              typ = compileTypeRep ta sa
          NewParam typ $ \name -> compileProgTop bs k body (M.insert v name m)
-         --p <- compileProgTop bs k body
 
-         --return $ NewParam typ $ \name -> let (a,_,_) = runRWS (withAlias v name $ compileProgTop bs k body) initReader initState
-         --                                 in a
-
-         --    --arg = if isComposite typ
-         --    --        then mkPointer  typ v
-         --    --        else mkVariable typ v
-        ---- tell $ mempty {args=[arg]}
-         ----tellProc $ NewParam typ (\n -> PIRE.Nil)
-         --tellProc $ NewParam typ (\n -> ProcBody $ Statement $ var $ n ++ show v) -- this will be translated to Nil later on by
-         ----withAlias v (varToExpr arg) $
-         --compileProgTop bs body
 compileProgTop bs k (lt :$ e :$ (lam :$ body)) m
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam
   , Just Let <- prj lt
@@ -182,18 +153,12 @@ compileProgTop bs k e@(lt :$ _ :$ _) m
 --    return outParam
 
 compileProgTop bs k a m = compileProg k a m
---    mapM compileBind (reverse bs)
---    compileProg outLoc a
---    return outParam
-
---compileProg k a m--error "compileProgTop"
 
 
 fromCore :: SyntacticFeld a => a -> IO ()
 fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
   where
     result = compileProgTop [] outParam ast M.empty
---    (result,s,w) = runRWS (compileProgTop [] undefined ast) initReader initState
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
     outParam   = OutParam typ

@@ -62,12 +62,12 @@ instance ( Compile dom dom
          , ConstrainedBy dom Typeable
          )
       => Compile (Loop :|| Type) dom
---  where
---    compileProgSym (C' ForLoop) _ loc (len :* init :* (lam1 :$ lt1) :* Nil)
---        | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
---        , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
---        , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
---        = do
+  where
+    compileProgSym (C' ForLoop) _ loc (len :* init :* (lam1 :$ lt1) :* Nil)
+        | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
+        , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
+        , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
+        = error "ForLoop" --do
 --            blocks <- mapM (confiscateBlock . compileBind) bs1
 --            let info1 = getInfo lam1
 --                info2 = getInfo lam2

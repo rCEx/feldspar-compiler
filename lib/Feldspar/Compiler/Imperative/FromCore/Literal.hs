@@ -59,9 +59,12 @@ import Procedure as PIRE
 
 instance Compile (Literal :|| Core.Type) dom
   where
-    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a
+    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a ""
 --
-    compileProgSym (C' (Literal a)) info k Nil m = k $ \name -> ProcBody $ loc name ((literal (infoType info) (infoSize info) a))
+    compileProgSym (C' (Literal a)) info k Nil m =
+      k $ \name -> ProcBody $ literalProg (infoType info) (infoSize info) a name
+    
+    --k $ \name -> ProcBody $ loc name (literal (infoType info) (infoSize info) a)
     
 
 --error "compileProgSym for Literal undefined."
@@ -69,17 +72,19 @@ instance Compile (Literal :|| Core.Type) dom
     -- literalLoc (infoType info) (infoSize info) a
 --
 
+literalProg :: TypeRep a -> Core.Size a -> a -> Name -> Program ()
+literalProg t@IntType{}   sz a name = loc name (literal t sz a name) 
+literalProg t@ArrayType{} sz a out  = Alloc PIRE.TInt [] $ \name -> 
+          for (Num 0) (Num 5) $ \e -> loc name (Index name [e]) --locArray name e (literal t sz a name)
 
-literalProg :: TypeRep a -> Core.Size a -> a -> Program ()
-literalProg t@IntType{} sz a  = initScalar typ (Num $ literalConst t sz a) $ \loc arr -> Skip
-  where typ = compileTypeRep t sz
-literalProg t@ArrayType{} sz a = initArray typ [Num 10] (\_ -> literal t sz a) $ \ loc arr -> Skip
-  where typ = compileTypeRep t sz
+--loc name (literal t sz a) 
 
 
-literal :: TypeRep a -> Core.Size a -> a -> Expr
-literal t@IntType{} sz a   = Num $ literalConst t sz a
-literal t@ArrayType{} sz a = head $ arrayConst t sz a --Num $ literalConst t sz a
+
+
+literal :: TypeRep a -> Core.Size a -> a -> Name -> Expr
+literal t@IntType{}   sz a n = literalConst t sz a n
+literal t@ArrayType{} sz a n = literalConst t sz a n--Num $ literalConst t sz a
 --literal :: TypeRep a -> Size a -> a -> CodeWriter (Expression ())
 --literal t@UnitType        sz a = return (ConstExpr $ literalConst t sz a)
 --literal t@BoolType        sz a = return (ConstExpr $ literalConst t sz a)
@@ -92,14 +97,13 @@ literal t@ArrayType{} sz a = head $ arrayConst t sz a --Num $ literalConst t sz 
 --                   return loc
 --
 
+literalConst :: TypeRep a -> Core.Size a -> a -> Name -> Expr
+literalConst t@IntType{}     sz a n = Num $ fromInteger $ toInteger a
+literalConst x@(ArrayType t) sz a n = var n -- error "literalConst undefined for Array"
 
-literalConst :: TypeRep a -> Core.Size a -> a -> Int
-literalConst t@IntType{}   sz a = fromInteger $ toInteger a
+--arrayConst :: TypeRep a -> Core.Size a -> a -> [Expr]
+--arrayConst (ArrayType t) sz as = map (Num . literalConst t (defaultSize t)) as
 
-arrayConst :: TypeRep a -> Core.Size a -> a -> [Expr]
-arrayConst (ArrayType t) sz as = map (Num . literalConst t (defaultSize t)) as
-
---initArray (compileTypeRep t sz) [] (\_ -> Num 14) $ \_ _ -> Skip
 
 
 --literalConst :: TypeRep a -> Size a -> a -> Constant ()

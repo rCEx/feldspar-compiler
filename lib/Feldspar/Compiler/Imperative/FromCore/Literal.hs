@@ -64,10 +64,10 @@ instance Compile (Literal :|| Core.Type) dom
     compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a  
     
     compileProgSym x@(C' (Literal a)) info k Nil m =
-      k $ \name -> foldl1 (.>>) $ map (\(l,i) -> locArray name i l) literals
+      k $ \name -> foldl1 (.>>) $ locs name
         where 
-          literals = zip (literal (infoType info) (infoSize info) a) 
-                         (map Num [0..])
+          locs name = zipWith ($) (map (locArray name . Num) [0..]) literals
+          literals  = literal (infoType info) (infoSize info) a 
     
     compileProgBasic name (C' (Literal a)) info Nil m = loc name $ head $ literal (infoType info) (infoSize info) a
     

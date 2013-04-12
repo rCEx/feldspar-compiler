@@ -76,6 +76,7 @@ literal :: TypeRep a -> Core.Size a -> a -> [Expr]
 literal t@IntType{}   sz a = literalConst t sz a 
 literal t@ArrayType{} sz a = literalConst t sz a --Num $ literalConst t sz a
 literal _ _ _ = error "literal undefined."
+
 --literal :: TypeRep a -> Size a -> a -> CodeWriter (Expression ())
 --literal t@UnitType        sz a = return (ConstExpr $ literalConst t sz a)
 --literal t@BoolType        sz a = return (ConstExpr $ literalConst t sz a)
@@ -90,12 +91,7 @@ literal _ _ _ = error "literal undefined."
 
 literalConst :: TypeRep a -> Core.Size a -> a -> [Expr]
 literalConst t@IntType{}     sz a = [Num $ fromInteger $ toInteger a]
-literalConst x@(ArrayType t) sz a = map (head . (literalConst t (defaultSize t))) a -- error "literalConst undefined for Array"
-
-
---arrayConst :: TypeRep a -> Core.Size a -> a -> [Expr]
---arrayConst (ArrayType t) sz as = map (Num . literalConst t (defaultSize t)) as
-
+literalConst x@(ArrayType t) sz a = map (head . (literalConst t (defaultSize t))) a 
 
 
 --literalConst :: TypeRep a -> Size a -> a -> Constant ()

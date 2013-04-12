@@ -39,6 +39,8 @@ import Data.Typeable (Typeable(..))
 
 import Prelude hiding (init)
 
+import qualified Data.Map as M
+
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
 import Language.Syntactic.Constructs.Binding.HigherOrder
@@ -54,6 +56,9 @@ import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 
+import Expr
+import Program
+
 instance ( Compile dom dom
          , Project (CLambda Type) dom
          , Project (Literal  :|| Type) dom
@@ -63,11 +68,22 @@ instance ( Compile dom dom
          )
       => Compile (Loop :|| Type) dom
   where
-    compileProgSym (C' ForLoop) _ loc (len :* init :* (lam1 :$ lt1) :* Nil)
+    compileProgSym (C' ForLoop) _ k (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = error "ForLoop" --do
+        = let  ta = argType $ infoType $ getInfo lam1
+               sa = fst $ infoSize $ getInfo lam1
+               typ = compileTypeRep ta sa
+          in k $ \out -> 
+             Alloc typ [] $ \lenName -> compileProgWithName lenName len m .>>
+             Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
+             Alloc typ [] $ \state -> 
+             for (var startName) (var lenName) (\e -> 
+               locArray state e $ head $ compileExpr ixf $ M.insert st state $ M.insert ix (nameFromVar e) m) .>>
+             loc out (var state)
+
+        --do
 --            blocks <- mapM (confiscateBlock . compileBind) bs1
 --            let info1 = getInfo lam1
 --                info2 = getInfo lam2

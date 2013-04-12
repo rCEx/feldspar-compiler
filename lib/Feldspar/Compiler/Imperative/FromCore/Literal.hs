@@ -61,19 +61,17 @@ import qualified Data.Map as M
 
 instance Compile (Literal :|| Core.Type) dom
   where
-    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a --  change type to [Expr] always?
---
+    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a  
+    
     compileProgSym x@(C' (Literal a)) info k Nil m =
       k $ \name -> foldl1 (.>>) $ map (\(l,i) -> locArray name i l) literals
         where 
           literals = zip (literal (infoType info) (infoSize info) a) 
                          (map Num [0..])
     
-    --compileProgBasic name (C' (Literal a)) info Nil m = loc name (literal (infoType info) (infoSize info) a) 
-    compileProgBasic = error "Literal Basic."
+    compileProgBasic name (C' (Literal a)) info Nil m = loc name $ head $ literal (infoType info) (infoSize info) a
     
 
---error "compileProgSym for Literal undefined."
 --tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
     -- literalLoc (infoType info) (infoSize info) a
 --

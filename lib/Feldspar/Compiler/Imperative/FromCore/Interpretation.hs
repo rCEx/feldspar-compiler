@@ -87,15 +87,6 @@ type Alias = M.Map VarId Name
 ---- 'compileExprSym'.
 class Compile sub dom
   where
-    compileProgBasic
-        :: Name
-        -> sub a
-        -> Info (DenResult a)
-        -> Args (AST (Decor Info dom)) a
-       -- -> ASTF (Decor Info dom) a
-        -> CodeWriter ()
-    compileProgBasic name sub = error $ "compileProgBasic default case has no implementation." 
-
     compileProgSym
         :: sub a
         -> Info (DenResult a)
@@ -103,6 +94,14 @@ class Compile sub dom
         -> Args (AST (Decor Info dom)) a
         -> CodeWriter ()
     compileProgSym = compileExprLoc
+
+    compileProgBasic
+        :: Name
+        -> sub a
+        -> Info (DenResult a)
+        -> Args (AST (Decor Info dom)) a
+        -> CodeWriter ()
+    compileProgBasic name sub = error $ "compileProgBasic default case has no implementation."
 
     compileExprSym
         :: sub a
@@ -116,8 +115,12 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
     compileProgSym (InjL a) = compileProgSym a
     compileProgSym (InjR a) = compileProgSym a
 
+    compileProgBasic n (InjL a) = compileProgBasic n a
+    compileProgBasic n (InjR a) = compileProgBasic n a
+
     compileExprSym (InjL a) = compileExprSym a
     compileExprSym (InjR a) = compileExprSym a
+    
 --
 --
 --

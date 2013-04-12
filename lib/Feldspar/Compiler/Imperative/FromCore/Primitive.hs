@@ -56,6 +56,7 @@ import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 import Expr
+import Program 
 
 -- | Converts symbols to primitive function calls
 instance Compile dom dom => Compile Semantics dom
@@ -68,7 +69,9 @@ instance Compile dom dom => Compile Semantics dom
 
 
         --return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
-    compileProgBasic = error "Primitive basic"
+    compileProgBasic n (Sem name _) info args m = 
+        let argExprs = listArgs (head . flip compileExpr m) args
+        in loc n $ head [Call (var name) argExprs]
 --
 ---- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)
@@ -79,25 +82,36 @@ compilePrim :: (Semantic expr, Compile dom dom)
 compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (Conversion :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (EQ         :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (FLOATING   :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (Logic      :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (NUM        :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (ORD        :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 instance Compile dom dom => Compile (Trace      :|| Type) dom where compileExprSym = compilePrim
-                                                                    compileProgBasic = error "Prim basic"
+                                                                    compileProgBasic n e info args  = 
+                                                                      loc n . head . compilePrim e info args
 

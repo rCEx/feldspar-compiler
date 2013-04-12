@@ -109,6 +109,7 @@ class Compile sub dom
         -> Args (AST (Decor Info dom)) a
         -> Alias -> [Expr]
     compileExprSym = error "default: compileExprSym" --compileProgFresh
+
 instance (Compile sub1 dom, Compile sub2 dom) =>
     Compile (sub1 :+: sub2) dom
   where

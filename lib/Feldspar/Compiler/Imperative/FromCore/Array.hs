@@ -86,11 +86,13 @@ instance ( Compile dom dom
                typ = compileTypeRep ta sa
            in k $ \name -> 
                     Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
-                   -- .>>
-                   --   for (Num 0) (var lenName) $ \e -> locArray name e (compileExpr ixf m)
-                        
-
-    compileProgBasic name _ = error "getLength basic"
+                    .>>
+                      for (Num 0) (var lenName) $ \e -> locArray name e (head $ compileExpr ixf(M.insert v name m))
+  
+  
+    compileExprSym (C' GetLength) _ (a :* Nil) m = compileExpr a m
+    compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]
+    compileProgBasic name _ = error "compileProgBasic Array"
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"
 --    compileProgBasic name (C' SetIx) = error "getLength basic"

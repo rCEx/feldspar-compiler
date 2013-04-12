@@ -110,7 +110,7 @@ class Compile sub dom
     --    -> ((Name -> Proc ()) -> Proc ())
         -> Args (AST (Decor Info dom)) a
         -- -> CodeWriter (Expression ())
-        -> Alias -> Expr --CodeWriter Expr
+        -> Alias -> [Expr] --CodeWriter Expr
     compileExprSym = error "default: compileExprSym" --compileProgFresh
 instance (Compile sub1 dom, Compile sub2 dom) =>
     Compile (sub1 :+: sub2) dom
@@ -132,7 +132,7 @@ compileExprLoc :: Compile sub dom
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
 compileExprLoc a info k args m =
-    let expr = compileExprSym a info args m
+    let expr = head $ compileExprSym a info args m
     in k $ \name -> loc name expr
     --expr <- compileExprSym a info args
     --assign loc expr
@@ -181,7 +181,7 @@ compileProgDecorWithName name (Decor info a) args =
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
     -> Args (AST (Decor Info dom)) a
-    -> Alias -> Expr --CodeWriter Expr
+    -> Alias -> [Expr] --CodeWriter Expr
 compileExprDecor (Decor info a) args = compileExprSym a info args --compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
@@ -190,7 +190,7 @@ compileProg :: Compile dom dom =>
 compileProg k ast = simpleMatch (compileProgDecor k) ast
 
 compileExpr :: Compile dom dom => 
-  ASTF (Decor Info dom) a -> Alias -> Expr
+  ASTF (Decor Info dom) a -> Alias -> [Expr]
 compileExpr = simpleMatch compileExprDecor
 --
 compileProgWithName :: Compile dom dom =>
@@ -434,14 +434,14 @@ isVariableOrLiteral (prjF -> Just (C' (Core.Literal  _))) = True
 isVariableOrLiteral (prjF -> Just (C' (Core.Variable _))) = True
 isVariableOrLiteral _                                     = False
 --
-mkLength :: ( Project (Core.Literal  :|| Core.Type) dom
-            , Project (Core.Variable :|| Core.Type) dom
-            , Compile dom dom
-            )
-         => ASTF (Decor Info dom) a -> TypeRep a -> Core.Size a -> Alias -> Expr --CodeWriter (Expression ())
-mkLength a t sz m
-  | isVariableOrLiteral a = compileExpr a m
-  | otherwise = error "mkLenth" --k $ \name -> compileProg k a m
+--mkLength :: ( Project (Core.Literal  :|| Core.Type) dom
+--            , Project (Core.Variable :|| Core.Type) dom
+--            , Compile dom dom
+--            )
+--         => ASTF (Decor Info dom) a -> TypeRep a -> Core.Size a -> Alias -> Expr --CodeWriter (Expression ())
+--mkLength a t sz m
+--  | isVariableOrLiteral a = compileExpr a m
+--  | otherwise = error "mkLenth" --k $ \name -> compileProg k a m
 
 --  | otherwise             = do
 --      lenvar    <- freshVar "len" t sz

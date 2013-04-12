@@ -58,7 +58,7 @@ import Program
 
 instance Compile (Core.Variable :|| Type) dom
   where
-    compileExprSym (C' (Core.Variable v)) info Nil m = var $ variable
+    compileExprSym (C' (Core.Variable v)) info Nil m = [var $ variable]
       where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
         --error "Binding: CompileExprSym." --return $ var ('v':show v)
         --env <- ask

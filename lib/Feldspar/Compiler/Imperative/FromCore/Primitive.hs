@@ -61,8 +61,8 @@ import Expr
 instance Compile dom dom => Compile Semantics dom
   where
     compileExprSym (Sem name _) info args m =
-        let argExprs = listArgs (flip compileExpr m) args
-        in Call (var name) argExprs
+        let argExprs = listArgs (head . flip compileExpr m) args
+        in [Call (var name) argExprs]
         --argExprs <- sequence $ listArgs compileExpr args
         --return $ Call (var name) argExprs
 
@@ -75,7 +75,7 @@ compilePrim :: (Semantic expr, Compile dom dom)
     => (expr :|| Type) a
     -> Info (DenResult a)
     -> Args (AST (Decor Info dom)) a
-    -> Alias -> Expr
+    -> Alias -> [Expr]
 compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim

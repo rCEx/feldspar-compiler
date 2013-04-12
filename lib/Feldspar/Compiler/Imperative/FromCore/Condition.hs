@@ -51,7 +51,7 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   where
   compileProgSym (C' Condition) _ k (cond :* tHEN :* eLSE :* Nil) m = 
-        let c = compileExpr cond m
+        let c = head $ compileExpr cond m
             t = compileProg k tHEN m
             f = compileProg k eLSE m
         in k $ \name -> iff c t f

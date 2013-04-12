@@ -64,7 +64,10 @@ instance Compile (Literal :|| Core.Type) dom
     compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a --  change type to [Expr] always?
 --
     compileProgSym x@(C' (Literal a)) info k Nil m =
-      k $ \name -> loc name (literal (infoType info) (infoSize info) a)
+      k $ \name -> foldl1 (.>>) $ map (\(l,i) -> locArray name i l) literals
+        where 
+          literals = zip (literal (infoType info) (infoSize info) a) 
+                         (map Num [0..])
     
     --compileProgBasic name (C' (Literal a)) info Nil m = loc name (literal (infoType info) (infoSize info) a) 
     compileProgBasic = error "Literal Basic."
@@ -85,7 +88,7 @@ instance Compile (Literal :|| Core.Type) dom
 
 
 
-literal :: TypeRep a -> Core.Size a -> a -> Expr
+literal :: TypeRep a -> Core.Size a -> a -> [Expr]
 literal t@IntType{}   sz a = literalConst t sz a 
 literal t@ArrayType{} sz a = literalConst t sz a --Num $ literalConst t sz a
 literal _ _ _ = error "literal undefined."
@@ -101,9 +104,9 @@ literal _ _ _ = error "literal undefined."
 --                   return loc
 --
 
-literalConst :: TypeRep a -> Core.Size a -> a -> Expr
-literalConst t@IntType{}     sz a = Num $ fromInteger $ toInteger a
-literalConst x@(ArrayType t) sz a = head $map (literalConst t (defaultSize t)) a -- error "literalConst undefined for Array"
+literalConst :: TypeRep a -> Core.Size a -> a -> [Expr]
+literalConst t@IntType{}     sz a = [Num $ fromInteger $ toInteger a]
+literalConst x@(ArrayType t) sz a = map (head . (literalConst t (defaultSize t))) a -- error "literalConst undefined for Array"
 
 
 --arrayConst :: TypeRep a -> Core.Size a -> a -> [Expr]

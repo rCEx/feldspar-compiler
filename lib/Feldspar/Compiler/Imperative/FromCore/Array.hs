@@ -82,7 +82,7 @@ instance ( Compile dom dom
                typ = compileTypeRep ta 
                --len' = mkLength len (infoType $ getInfo len) sa m
                in --Alloc typ [] $ \lenName -> 
-                    k $ \name -> ProcBody $ for (Num 0) (Num 10) $ \e -> toProg (compileProg k ixf m) name --locArray name e (
+                    k $ \name -> for (Num 0) (Num 10) $ \e -> (compileProg k ixf m) --locArray name e (
                 --for (Num 0) len' $ \e -> loc name e--compileProg ixf m
                --mkLength len (infoType $ getInfo len) sa k m
            --in k $ \name -> procbody $ for (num 0) (num 25) $ \e -> loc name e--compileprog ixf m

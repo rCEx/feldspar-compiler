@@ -79,7 +79,7 @@ import Procedure as PIRE
 
 
 -- | Code generation monad
-type CodeWriter a = Alias -> Proc a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
+type CodeWriter a = Alias -> Program a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
 type Alias = M.Map VarId Name
 
@@ -88,12 +88,12 @@ type Alias = M.Map VarId Name
                       -- , backendOpts :: Options -- ^ Options for the backend.
 --                       }
 
-toProg :: Proc a -> String -> Program a
-toProg (ProcBody p) _ = p
-toProg NilProc      _ = error "NilProc"
-toProg (OutParam t k) n = toProg (k n) n
-toProg (NewParam t k) n = toProg (k n) n
-toProg _ _ = error "toProg undefined for Proc type"
+--toProg :: Proc a -> String -> Program a
+--toProg (ProcBody p) _ = p
+--toProg NilProc      _ = error "NilProc"
+--toProg (OutParam t k) n = toProg (k n) n
+--toProg (NewParam t k) n = toProg (k n) n
+--toProg _ _ = error "toProg undefined for Proc type"
 
 --initReader :: Options -> Readers
 --initReader :: Readers
@@ -159,7 +159,7 @@ class Compile sub dom
     compileProgSym
         :: sub a
         -> Info (DenResult a)
-        -> ((Name -> Proc ()) -> Proc ())
+        -> ((Name -> Program ()) -> Program ())
         -> Args (AST (Decor Info dom)) a
         -> CodeWriter ()
     compileProgSym = compileExprLoc
@@ -188,12 +188,12 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
 compileExprLoc :: Compile sub dom
     => sub a
     -> Info (DenResult a)
-    -> ((Name -> Proc ()) -> Proc ())
+    -> ((Name -> Program ()) -> Program ())
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
 compileExprLoc a info k args m =
     let expr = compileExprSym a info args m
-    in k $ \name -> ProcBody $ loc name expr
+    in k $ \name -> loc name expr
     --expr <- compileExprSym a info args
     --assign loc expr
     --tellProg $ Statement $ expr
@@ -220,7 +220,7 @@ compileDecor info action = do
     action
 --
 compileProgDecor :: Compile dom dom
-    => ((Name -> Proc ()) -> Proc ())
+    => ((Name -> Program ()) -> Program ())
     -> Decor Info dom a
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
@@ -234,7 +234,7 @@ compileExprDecor :: Compile dom dom
 compileExprDecor (Decor info a) args = compileExprSym a info args --compileDecor info $ compileExprSym a info args
 --
 compileProg :: Compile dom dom =>
-    ((Name -> Proc ()) -> Proc ())
+    ((Name -> Program ()) -> Program ())
     -> ASTF (Decor Info dom) a -> CodeWriter ()
 compileProg k ast = simpleMatch (compileProgDecor k) ast
 

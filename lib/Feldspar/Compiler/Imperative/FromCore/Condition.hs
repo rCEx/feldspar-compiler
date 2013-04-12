@@ -54,7 +54,7 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
         let c = compileExpr cond m
             t = compileProg k tHEN m
             f = compileProg k eLSE m
-        in k $ \name -> ProcBody $ iff c (toProg t name) (toProg f name)
+        in k $ \name -> iff c t f
 
 
           --do

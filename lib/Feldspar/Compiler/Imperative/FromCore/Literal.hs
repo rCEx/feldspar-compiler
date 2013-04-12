@@ -62,7 +62,7 @@ instance Compile (Literal :|| Core.Type) dom
     compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a ""
 --
     compileProgSym (C' (Literal a)) info k Nil m =
-      k $ \name -> ProcBody $ literalProg (infoType info) (infoSize info) a name
+      k $ \name -> literalProg (infoType info) (infoSize info) a name
     
     --k $ \name -> ProcBody $ loc name (literal (infoType info) (infoSize info) a)
     

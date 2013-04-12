@@ -111,7 +111,7 @@ compileProgTop :: ( Compile dom dom
                   , ConstrainedBy dom Typeable
                   ) =>
           [(VarId, ASTB (Decor Info dom) Type)] ->
-          ((Name -> Proc ()) -> Proc ()) ->
+          ((Name -> Program ()) -> Program ()) ->
           ASTF (Decor Info dom) a -> CodeWriter ()
 compileProgTop bs k (lam :$ body) m
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam

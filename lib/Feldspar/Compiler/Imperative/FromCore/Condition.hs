@@ -55,7 +55,8 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
             t = compileProg k tHEN m
             f = compileProg k eLSE m
         in k $ \name -> iff c t f
-
+  
+  compileProgBasic = error "cond prim"
 
           --do
 --        condExpr <- compileExpr cond

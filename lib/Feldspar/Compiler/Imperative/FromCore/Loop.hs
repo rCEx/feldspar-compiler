@@ -80,6 +80,9 @@ instance ( Compile dom dom
 --            (_, Block ds body) <- withAlias st loc $ confiscateBlock $ compileProg stvar ixf >> assign loc stvar
 --            declare stvar
 --            tellProg [toProg $ Block (concat dss ++ ds) (for (lName ix') len' 1 (toBlock $ Sequence $ concat lets ++ [body]))]
+
+    compileProgBasic  = error "Loop  basic"
+
 --
 --    compileProgSym (C' WhileLoop) _ loc (init :* (lam1 :$ cond) :* (lam2 :$ body) :* Nil)
 --        | Just (SubConstr2 (Lambda cv)) <- prjLambda lam1
@@ -96,13 +99,14 @@ instance ( Compile dom dom
 --            declare condv
 --            tellProg [while cond' condv body']
 --
---instance ( Compile dom dom
---         , Project (CLambda Type) dom
---         , Project (Literal  :|| Type) dom
---         , Project (Variable :|| Type) dom
---         )
---      => Compile (LoopM Mut) dom
---  where
+instance ( Compile dom dom
+         , Project (CLambda Type) dom
+         , Project (Literal  :|| Type) dom
+         , Project (Variable :|| Type) dom
+         )
+      => Compile (LoopM Mut) dom
+  where
+    compileProgBasic = error "LoopM basic"
 --    compileProgSym Core.For _ loc (len :* (lam :$ ixf) :* Nil)
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
 --        = do

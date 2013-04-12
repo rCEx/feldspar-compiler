@@ -68,6 +68,7 @@ instance Compile dom dom => Compile Semantics dom
 
 
         --return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
+    compileProgBasic = error "Primitive basic"
 --
 ---- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)
@@ -78,14 +79,25 @@ compilePrim :: (Semantic expr, Compile dom dom)
 compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (Conversion :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (EQ         :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (FLOATING   :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (Logic      :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (NUM        :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (ORD        :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 instance Compile dom dom => Compile (Trace      :|| Type) dom where compileExprSym = compilePrim
+                                                                    compileProgBasic = error "Prim basic"
 

@@ -91,15 +91,19 @@ import Procedure       as PIRE
 import GenOCL          as PIRE
 import Gen             as PIRE
 
+import Debug.Trace
+
 instance Compile FeldDom FeldDom
   where
-    compileProgSym (C' a) = compileProgSym a 
-    compileExprSym (C' a) = compileExprSym a
+    compileProgSym (C' a)     = traceShow ("TRACE on ProgSym: " ++ show a) compileProgSym a 
+    compileProgBasic n (C' a) = traceShow ("TRACE on ProgBasic: " ++ show a) compileProgBasic n a 
+    compileExprSym (C' a)     = traceShow ("TRACE on ExprSym: " ++ show a) compileExprSym a
 
 instance Compile Empty dom
   where
-    compileProgSym _ = error "Can't compile Empty"
-    compileExprSym _ = error "Can't compile Empty"
+    compileProgSym _   = error "Can't compile Empty"
+    compileProgBasic _ = error "Can't compile Empty"
+    compileExprSym _   = error "Can't compile Empty"
 
 
 

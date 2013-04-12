@@ -65,12 +65,15 @@ instance Compile (Core.Variable :|| Type) dom
         --case lookup v (alias env) of
         --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
         --  Just e  -> return e
-
+    compileProgBasic = error "Binding Basic"
 instance Compile (CLambda Type) dom
   where
     compileProgSym = error "Can only compile top-level Lambda"
+    compileProgBasic = error "basic lambda2"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
+  where
+  compileProgBasic = error "Binding basic"
 --  where
 --    compileProgSym Let _ loc (a :* (lam :$ body) :* Nil)
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam

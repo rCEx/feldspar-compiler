@@ -48,4 +48,5 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 instance Compile dom dom => Compile (Save :|| Type) dom
   where
     compileProgSym (C' Save) _ k (a :* Nil) = error "Save" -- compileProg loc a
+    compileProgBasic = error "Save basic"
 

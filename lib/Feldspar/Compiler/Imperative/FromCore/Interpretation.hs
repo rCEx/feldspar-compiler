@@ -75,7 +75,7 @@ import Types as PIRE
 import Procedure as PIRE
 
 
-
+import Debug.Trace
 
 
 -- | Code generation monad
@@ -83,75 +83,6 @@ type CodeWriter a = Alias -> Program a --M.Map VarId Name -> Proc () --RWS Reade
 
 type Alias = M.Map VarId Name
 
---data Readers = Readers { alias :: [(VarId, Name)]--Expression ())] -- ^ variable aliasing
-                      -- , sourceInfo :: SourceInfo -- ^ Surrounding source info
-                      -- , backendOpts :: Options -- ^ Options for the backend.
---                       }
-
---toProg :: Proc a -> String -> Program a
---toProg (ProcBody p) _ = p
---toProg NilProc      _ = error "NilProc"
---toProg (OutParam t k) n = toProg (k n) n
---toProg (NewParam t k) n = toProg (k n) n
---toProg _ _ = error "toProg undefined for Proc type"
-
---initReader :: Options -> Readers
---initReader :: Readers
---initReader = Readers []
-----
---
---data Writers = Writers-- { proc    :: Proc ()
---                      -- , program :: Program ()
---                      -- }
---
---instance Monoid Writers where
---  mempty = error "mempty undefined for Writers."--Writers mempty mempty
---  mappend a b = error "mappend undefined for Writers." --Writers {proc = mappend (proc a) (proc b), program = mappend (program a) (program b)}
-
-
---analyzeProc :: Proc () -> Proc ()
-----analyzeProc PIRE.Nil       = PIRE.Nil
---analyzeProc (BasicProc p)  = BasicProc (analyzeProc p)
---analyzeProc (ProcBody p)   = PIRE.Nil
---analyzeProc (NewParam t k) = NewParam t $ \n -> analyzeProc $ k n
---analyzeProc p              = p
-
-
-
---data Writers = Writers { block    :: Block ()         -- ^ collects code within one block
---                       , def      :: [Entity ()]      -- ^ collects top level definitions
---                       , decl     :: [Declaration ()] -- ^ collects top level variable declarations
---                       , args     :: [Variable ()]    -- ^ collects top level arguments
---                       , epilogue :: [Program ()]     -- ^ collects postlude code (freeing memory, etc)
---                       }
---
---instance Monoid Writers
---  where
---    mempty      = Writers { block    = mempty
---                          , def      = mempty
---                          , decl     = mempty
---                          , args     = mempty
---                          , epilogue = mempty
---                          }
---    mappend a b = Writers { block    = mappend (block    a) (block    b)
---                          , def      = mappend (def      a) (def      b)
---                          , decl     = mappend (decl     a) (decl     b)
---                          , args     = mappend (args     a) (args     b)
---                          , epilogue = mappend (epilogue a) (epilogue b)
---                          }
---
-data States = States --{ proc :: (Name -> Proc ()) -> Proc ()}
-                     
---data States = States { fresh :: VarId -- ^ The first fresh variable id
---                     }
---
-initState :: States
---initState :: States
-initState = States
---
----- | Where to place the program result
---type Location = Expression ()
---
 ---- | A minimal complete instance has to define either 'compileProgSym' or
 ---- 'compileExprSym'.
 class Compile sub dom
@@ -163,7 +94,7 @@ class Compile sub dom
         -> Args (AST (Decor Info dom)) a
        -- -> ASTF (Decor Info dom) a
         -> CodeWriter ()
-    compileProgBasic = error "compileProgBasic"
+    compileProgBasic name sub = error $ "compileProgBasic default case has no implementation." 
 
     compileProgSym
         :: sub a

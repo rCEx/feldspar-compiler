@@ -55,3 +55,4 @@ instance Compile dom dom => Compile (Decor SourceInfo1 Identity :|| Type) dom
 --        tellProg [Comment True info]
 --        compileExpr a
 
+    compileProgBasic = error "SourceInfo" --do

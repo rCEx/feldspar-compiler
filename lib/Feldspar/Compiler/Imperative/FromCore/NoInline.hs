@@ -46,8 +46,9 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.Frontend
 
 instance Compile dom dom => Compile (NoInline :|| Type) dom
---  where
---    compileExprSym = compileProgFresh
+    where
+      compileExprSym = error "NoInline"--compileProgFresh
+      compileProgBasic = error "NoInline basic"
 --
 --    compileProgSym (C' NoInline) info loc (p :* Nil) = do
 --        let args = [mkVariable (compileTypeRep t (defaultSize t)) v

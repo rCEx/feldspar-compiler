@@ -47,7 +47,8 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 
 instance Compile dom dom => Compile (Tuple :|| Type) dom
---  where
+  where
+    compileProgBasic = error "Tuple basic"
 --    compileProgSym (C' Tup2) _ loc (m1 :* m2 :* Nil) = do
 --        compileProg (StructField loc "member1") m1
 --        compileProg (StructField loc "member2") m2
@@ -83,6 +84,8 @@ instance Compile dom dom => Compile (Tuple :|| Type) dom
 --        compileProg (StructField loc "member7") m7
 --
 instance Compile dom dom => Compile (Select :|| Type) dom
+  where
+    compileProgBasic = error "Tuple basic2"
 --  where
 --    compileExprSym (C' Sel1) _ (tup :* Nil) = do
 --        tupExpr <- compileExpr tup

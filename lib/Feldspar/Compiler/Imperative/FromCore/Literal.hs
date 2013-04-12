@@ -57,15 +57,17 @@ import Combinators as PIRE
 import qualified Types as PIRE
 import Procedure as PIRE
 
+import qualified Data.Map as M
+
 instance Compile (Literal :|| Core.Type) dom
   where
-    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a
+    compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a --  change type to [Expr] always?
 --
     compileProgSym x@(C' (Literal a)) info k Nil m =
       k $ \name -> loc name (literal (infoType info) (infoSize info) a)
     
-    compileProgBasic name (C' (Literal a)) info Nil m = loc name (literal (infoType info) (infoSize info) a) 
-    --k $ \name -> ProcBody $ loc name (literal (infoType info) (infoSize info) a)
+    --compileProgBasic name (C' (Literal a)) info Nil m = loc name (literal (infoType info) (infoSize info) a) 
+    compileProgBasic = error "Literal Basic."
     
 
 --error "compileProgSym for Literal undefined."
@@ -85,7 +87,8 @@ instance Compile (Literal :|| Core.Type) dom
 
 literal :: TypeRep a -> Core.Size a -> a -> Expr
 literal t@IntType{}   sz a = literalConst t sz a 
---literal t@ArrayType{} sz a = literalConst t sz a --Num $ literalConst t sz a
+literal t@ArrayType{} sz a = literalConst t sz a --Num $ literalConst t sz a
+literal _ _ _ = error "literal undefined."
 --literal :: TypeRep a -> Size a -> a -> CodeWriter (Expression ())
 --literal t@UnitType        sz a = return (ConstExpr $ literalConst t sz a)
 --literal t@BoolType        sz a = return (ConstExpr $ literalConst t sz a)
@@ -100,7 +103,8 @@ literal t@IntType{}   sz a = literalConst t sz a
 
 literalConst :: TypeRep a -> Core.Size a -> a -> Expr
 literalConst t@IntType{}     sz a = Num $ fromInteger $ toInteger a
---literalConst x@(ArrayType t) sz a n = var n -- error "literalConst undefined for Array"
+literalConst x@(ArrayType t) sz a = head $map (literalConst t (defaultSize t)) a -- error "literalConst undefined for Array"
+
 
 --arrayConst :: TypeRep a -> Core.Size a -> a -> [Expr]
 --arrayConst (ArrayType t) sz as = map (Num . literalConst t (defaultSize t)) as

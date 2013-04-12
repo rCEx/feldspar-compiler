@@ -72,20 +72,6 @@ instance Compile (Literal :|| Core.Type) dom
     compileProgBasic name (C' (Literal a)) info Nil m = loc name $ head $ literal (infoType info) (infoSize info) a
     
 
---tellProg $ literalProg (infoType info) (infoSize info) a --Statement $ literal (infoType info) (infoSize info) a
-    -- literalLoc (infoType info) (infoSize info) a
---
-
---literalProg :: TypeRep a -> Core.Size a -> a -> Name -> Program ()
---literalProg t@IntType{}   sz a name = loc name (literal t sz a name) 
---literalProg t@ArrayType{} sz a out  = Alloc PIRE.TInt [] $ \name -> 
---          for (Num 0) (Num 5) $ \e -> loc name (Index name [e]) --locArray name e (literal t sz a name)
-
---loc name (literal t sz a) 
-
-
-
-
 literal :: TypeRep a -> Core.Size a -> a -> [Expr]
 literal t@IntType{}   sz a = literalConst t sz a 
 literal t@ArrayType{} sz a = literalConst t sz a --Num $ literalConst t sz a

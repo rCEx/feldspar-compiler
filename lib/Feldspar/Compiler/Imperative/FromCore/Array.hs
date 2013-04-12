@@ -87,7 +87,8 @@ instance ( Compile dom dom
            in k $ \name -> 
                     Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
                     .>>
-                      for (Num 0) (var lenName) $ \e -> locArray name e (head $ compileExpr ixf(M.insert v name m))
+                      for (Num 0) (var lenName) $ \e -> 
+                        locArray name e (head $ compileExpr ixf(M.insert v (nameFromVar e) m))
   
   
     compileExprSym (C' GetLength) _ (a :* Nil) m = compileExpr a m

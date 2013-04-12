@@ -75,14 +75,21 @@ instance ( Compile dom dom
          )
       => Compile (Array :|| Type) dom
   where
-    compileProgSym (C' Parallel) _ k (len :* (lam :$ ixf) :* Nil) m
+    compileProgSym (C' Parallel) info k (len :* (lam :$ ixf) :* Nil) m
       | Just (SubConstr2 (Lambda v)) <- prjLambda lam
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
-               typ = compileTypeRep ta 
+               typ = compileTypeRep ta sa
+           in k $ \name -> 
+                    Alloc typ [] $ \lenName -> compileProgWithName lenName len m 
+                    --compileProgBasic lenName len (getInfo len) Nil m
+                        
+                            
+
+
                --len' = mkLength len (infoType $ getInfo len) sa m
-               in --Alloc typ [] $ \lenName -> 
-                    k $ \name -> for (Num 0) (Num 10) $ \e -> (compileProg k ixf m) --locArray name e (
+              -- in --Alloc typ [] $ \lenName -> 
+              --      k $ \name -> for (Num 0) (Num 10) $ \e -> (compileProg k ixf m) --locArray name e (
                 --for (Num 0) len' $ \e -> loc name e--compileProg ixf m
                --mkLength len (infoType $ getInfo len) sa k m
            --in k $ \name -> procbody $ for (num 0) (num 25) $ \e -> loc name e--compileprog ixf m

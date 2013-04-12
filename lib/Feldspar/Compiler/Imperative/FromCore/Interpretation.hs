@@ -156,6 +156,15 @@ initState = States
 ---- 'compileExprSym'.
 class Compile sub dom
   where
+    compileProgBasic
+        :: Name
+        -> sub a
+        -> Info (DenResult a)
+        -> Args (AST (Decor Info dom)) a
+       -- -> ASTF (Decor Info dom) a
+        -> CodeWriter ()
+    compileProgBasic = error "compileProgBasic"
+
     compileProgSym
         :: sub a
         -> Info (DenResult a)
@@ -198,26 +207,29 @@ compileExprLoc a info k args m =
     --assign loc expr
     --tellProg $ Statement $ expr
 --
----- | Implementation of 'compileProgSym' that generates code into a fresh
----- variable.
 --compileProgFresh :: Compile sub dom -- TODO Use Alloc?
---    => sub a
+--    => Name
+--    -> sub a
 --    -> Info (DenResult a)
 --    -> Args (AST (Decor Info dom)) a
---    -> CodeWriter () --CodeWriter (Expression ())
---compileProgFresh a info args m
+--    -> CodeWriter ()
+--compileProgFresh = compileProgBasic
+
+--error "compileProgFresh"
+
+
 --do
 --    loc <- --freshVar "e" (infoType info) (infoSize info)
 --    compileProgSym a info loc args
 --    return loc
 
 compileDecor :: Info a -> CodeWriter b -> CodeWriter b
-compileDecor info action = do
+compileDecor info action = action
     --let src = infoSource info
     --aboveSrc <- asks sourceInfo
    -- unless (null src || src==aboveSrc) $ tellProg [Comment True src]
     --local (\env -> env{sourceInfo=src}) action
-    action
+--    action
 --
 compileProgDecor :: Compile dom dom
     => ((Name -> Program ()) -> Program ())
@@ -226,7 +238,15 @@ compileProgDecor :: Compile dom dom
     -> CodeWriter ()
 compileProgDecor k (Decor info a) args =
     compileDecor info $ compileProgSym a info k args
---
+
+compileProgDecorWithName :: Compile dom dom
+    => Name
+    -> Decor Info dom a
+    -> Args (AST (Decor Info dom)) a
+    -> CodeWriter ()
+compileProgDecorWithName name (Decor info a) args =
+    compileDecor info $ compileProgBasic name a info args
+
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
     -> Args (AST (Decor Info dom)) a
@@ -242,7 +262,9 @@ compileExpr :: Compile dom dom =>
   ASTF (Decor Info dom) a -> Alias -> Expr
 compileExpr = simpleMatch compileExprDecor
 --
-
+compileProgWithName :: Compile dom dom =>
+    Name -> ASTF (Decor Info dom) a -> CodeWriter ()
+compileProgWithName name ast = simpleMatch (compileProgDecorWithName name) ast
 
 
 

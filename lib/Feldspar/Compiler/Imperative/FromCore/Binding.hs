@@ -69,11 +69,11 @@ instance Compile (Core.Variable :|| Type) dom
 instance Compile (CLambda Type) dom
   where
     compileProgSym = error "Can only compile top-level Lambda"
-    compileProgBasic = error "basic lambda2"
+    compileProgBasic = error "Binding Basic2"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where
-  compileProgBasic = error "Binding basic"
+  compileProgBasic = error "Binding basic3"
 --  where
 --    compileProgSym Let _ loc (a :* (lam :$ body) :* Nil)
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam

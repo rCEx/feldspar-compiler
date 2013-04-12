@@ -104,13 +104,11 @@ class Compile sub dom
         -> CodeWriter ()
     compileProgSym = compileExprLoc
 
-    compileExprSym -- Function args.
+    compileExprSym
         :: sub a
         -> Info (DenResult a)
-    --    -> ((Name -> Proc ()) -> Proc ())
         -> Args (AST (Decor Info dom)) a
-        -- -> CodeWriter (Expression ())
-        -> Alias -> [Expr] --CodeWriter Expr
+        -> Alias -> [Expr]
     compileExprSym = error "default: compileExprSym" --compileProgFresh
 instance (Compile sub1 dom, Compile sub2 dom) =>
     Compile (sub1 :+: sub2) dom
@@ -181,13 +179,13 @@ compileProgDecorWithName name (Decor info a) args =
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
     -> Args (AST (Decor Info dom)) a
-    -> Alias -> [Expr] --CodeWriter Expr
-compileExprDecor (Decor info a) args = compileExprSym a info args --compileDecor info $ compileExprSym a info args
+    -> Alias -> [Expr] 
+compileExprDecor (Decor info a) = compileExprSym a info
 --
 compileProg :: Compile dom dom =>
     ((Name -> Program ()) -> Program ())
     -> ASTF (Decor Info dom) a -> CodeWriter ()
-compileProg k ast = simpleMatch (compileProgDecor k) ast
+compileProg k = simpleMatch (compileProgDecor k)
 
 compileExpr :: Compile dom dom => 
   ASTF (Decor Info dom) a -> Alias -> [Expr]
@@ -195,7 +193,7 @@ compileExpr = simpleMatch compileExprDecor
 --
 compileProgWithName :: Compile dom dom =>
     Name -> ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgWithName name ast = simpleMatch (compileProgDecorWithName name) ast
+compileProgWithName name = simpleMatch (compileProgDecorWithName name)
 
 
 

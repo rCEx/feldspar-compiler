@@ -88,10 +88,10 @@ instance ( Compile dom dom
                     Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
                     .>>
                       for (Num 0) (var lenName) $ \e -> 
-                        locArray name e (head $ compileExpr ixf(M.insert v (nameFromVar e) m))
+                        locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
   
   
-    compileExprSym (C' GetLength) _ (a :* Nil) m = compileExpr a m
+    compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes parameter is used.
     compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]
     compileProgBasic name _ = error "compileProgBasic Array"
 --    compileProgBasic name (C' setLength) = error "getLength basic"

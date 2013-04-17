@@ -63,7 +63,7 @@ instance Compile dom dom => Compile Semantics dom
   where
     compileExprSym (Sem name _) info args m =
         let argExprs = listArgs (head . flip compileExpr m) args
-        in [Call (var name) argExprs]
+        in [toInfix name argExprs]--[Call (var name) argExprs]
         --argExprs <- sequence $ listArgs compileExpr args
         --return $ Call (var name) argExprs
 
@@ -71,7 +71,16 @@ instance Compile dom dom => Compile Semantics dom
         --return $ fun (compileTypeRep (infoType info) (infoSize info)) name argExprs
     compileProgBasic n (Sem name _) info args m = 
         let argExprs = listArgs (head . flip compileExpr m) args
-        in loc n $ head [Call (var name) argExprs]
+        in loc n $ head [toInfix name argExprs ]--[Call (var name) argExprs]
+
+toInfix :: String -> [Expr] -> Expr
+toInfix s es | s == "(*)"
+             , [a,b] <- es = a .* b
+             | s == "(+)"
+             , [a,b] <- es = a .+ b
+             | s == "(-)"
+             , [a,b] <- es = a .- b
+             | otherwise  = Call (var s) es
 --
 ---- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)

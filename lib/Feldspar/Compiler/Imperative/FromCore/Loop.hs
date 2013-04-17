@@ -81,7 +81,7 @@ instance ( Compile dom dom
              --Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
              --Alloc typ [] $ \state -> 
              for (head initExpr) (var lenName) $ \e -> 
-               locArray out e $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
+               loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
              --loc out (var state)
 
         --do

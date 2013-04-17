@@ -75,13 +75,14 @@ instance ( Compile dom dom
         = let  ta = argType $ infoType $ getInfo lam1
                sa = fst $ infoSize $ getInfo lam1
                typ = compileTypeRep ta sa
+               initExpr = compileExpr init m
           in k $ \out -> 
              Alloc typ [] $ \lenName -> compileProgWithName lenName len m .>>
-             Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
-             Alloc typ [] $ \state -> 
-             for (var startName) (var lenName) (\e -> 
-               locArray state e $ head $ compileExpr ixf $ M.insert st state $ M.insert ix (nameFromVar e) m) .>>
-             loc out (var state)
+             --Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
+             --Alloc typ [] $ \state -> 
+             for (head initExpr) (var lenName) (\e -> 
+               locArray out e $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m)
+             --loc out (var state)
 
         --do
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

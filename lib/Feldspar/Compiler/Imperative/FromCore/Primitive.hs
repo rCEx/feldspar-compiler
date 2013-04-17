@@ -73,6 +73,7 @@ instance Compile dom dom => Compile Semantics dom
         let argExprs = listArgs (head . flip compileExpr m) args
         in loc n $ head [toInfix name argExprs ]--[Call (var name) argExprs]
 
+-- TODO doesn't cover all cases
 toInfix :: String -> [Expr] -> Expr
 toInfix s es | s == "(*)"
              , [a,b] <- es = a .* b

@@ -56,7 +56,7 @@ import Feldspar.Compiler.Imperative.Frontend
 --                                                    Block(..), Size(..),
 --                                                    Signedness(..), typeof)
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
-import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
+import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind, compileBinds)
 
 import Program
 import Expr
@@ -87,9 +87,47 @@ instance ( Compile dom dom
            in k $ \name -> 
                     Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
                     .>>
-                      for (Num 0) (var lenName) $ \e -> 
+                      par (Num 0) (var lenName) $ \e -> 
                         locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
-  
+    
+    compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
+        | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
+        , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
+        , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
+        = let ta = argType $ infoType $ getInfo lam1
+              sa = fst $ infoSize $ getInfo lam1
+              typ = compileTypeRep ta sa
+              ta' = argType $ infoType $ getInfo lam2
+              sa' = fst $ infoSize $ getInfo lam2
+              typ' = compileTypeRep ta' sa'
+              (m',k') = compileBinds bs1 m k
+          in k' $ \name -> 
+                for (Num 0) (head $ compileExpr (len) m) $ \e -> Skip
+                
+                  
+--            blocks <- mapM (confiscateBlock . compileBind) bs1
+--            let t = argType $ infoType $ getInfo lam1
+--            let sz = fst $ infoSize $ getInfo lam1
+--            let tr' = resType $ infoType $ getInfo lam2
+--            let sr' = snd $ infoSize $ getInfo lam2
+--            let ix = mkVar (compileTypeRep t sz) v
+--                (dss, lets) = unzip $ map (\(_, Block ds (Sequence body)) -> (ds, body)) blocks
+--            len' <- mkLength len (infoType $ getInfo len) sz
+--            tmp  <- freshVar "seq" tr' sr'
+--            (_, Block ds (Sequence body)) <- confiscateBlock $ withAlias s (StructField tmp "member2") $ compileProg tmp step
+--            tellProg [initArray (AddrOf loc) len']
+--            compileProg (StructField tmp "member2") st
+--            tellProg [toProg $ Block (concat dss ++ ds) $
+--                      for (lName ix) len' 1 $
+--                                    toBlock $ Sequence (concat lets ++ body ++
+--                                         [copyProg (ArrayElem (AddrOf loc) ix) [StructField tmp "member1"]
+--                                         ])]
+    compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
+            | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
+            , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
+            , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
+            = error "Sequential2"
+
   
     compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes parameter is used.
     compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]

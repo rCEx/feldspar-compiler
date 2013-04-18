@@ -163,11 +163,12 @@ compileProgTop bs k a m = compileProg k a m
 fromCore :: SyntacticFeld a => a -> PIRE.Program ()
 fromCore prog = BasicProc result
   where
-    result = compileProgTop [] outParam ast M.empty
+    result = compileProgTop [] (OutParam typ) ast M.empty
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
-    outParam   = OutParam typ
-    typ        = PIRE.TPointer PIRE.TInt
+    info       = getInfo ast
+    typ        = compileTypeRep (infoType info) (infoSize info)
+    --PIRE.TPointer PIRE.TInt
 
 
     --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState

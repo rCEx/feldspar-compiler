@@ -68,7 +68,7 @@ instance ( Compile dom dom
          )
       => Compile (Loop :|| Type) dom
   where
-    -- TODO this doesn't compile let binds 
+    -- TODO this doesn't compile let binds
     compileProgSym (C' ForLoop) _ k (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
@@ -76,14 +76,10 @@ instance ( Compile dom dom
         = let  ta = argType $ infoType $ getInfo lam1
                sa = fst $ infoSize $ getInfo lam1
                typ = compileTypeRep ta sa
-               initExpr = compileExpr init m
+               initExpr = head $ compileExpr init m
           in k $ \out -> 
-             Alloc typ [] $ \lenName -> compileProgWithName (zeroLoc lenName) len m .>>
-             --Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
-             --Alloc typ [] $ \state -> 
-             for (head initExpr) (var lenName) $ \e -> 
+             for initExpr (head $ compileExpr len m) $ \e -> -- (var lenName) $ \e -> 
                loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
-             --loc out (var state)
 
         --do
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

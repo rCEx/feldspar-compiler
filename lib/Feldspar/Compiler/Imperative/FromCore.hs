@@ -159,8 +159,9 @@ compileProgTop bs k e@(lt :$ _ :$ _) m
 compileProgTop bs k a m = compileProg k a m
 
 
-fromCore :: SyntacticFeld a => a -> IO ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
+--fromCore :: SyntacticFeld a => a -> IO ()
+fromCore :: SyntacticFeld a => a -> PIRE.Program ()
+fromCore prog = BasicProc $ result
   where
     result = compileProgTop [] outParam ast M.empty
     ast        = reifyFeld (frontendOpts opt) N32 prog

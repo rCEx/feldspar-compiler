@@ -68,6 +68,7 @@ instance ( Compile dom dom
          )
       => Compile (Loop :|| Type) dom
   where
+    -- TODO this doesn't compile let binds 
     compileProgSym (C' ForLoop) _ k (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1

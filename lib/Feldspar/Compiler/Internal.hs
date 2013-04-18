@@ -27,19 +27,20 @@
 --
 
 module Feldspar.Compiler.Internal
-    ( defaultOptions
-    , c99PlatformOptions
-    , tic64xPlatformOptions
-    , unrollOptions
-    , nativeArrayRules
-    , noPrimitiveInstructionHandling
-    , noMemoryInformation
-    , module Internal
+    (-- defaultOptions
+    --, c99PlatformOptions
+    --, tic64xPlatformOptions
+    --, unrollOptions
+    --, nativeArrayRules
+    --, noPrimitiveInstructionHandling
+    --, noMemoryInformation
+    --,
+    module Internal
     ) where
 
 import Feldspar.Compiler.Compiler
 import Feldspar.Compiler.Frontend.Interactive.Interface as Internal
 --import Feldspar.Compiler.Backend.C.Options              as Internal
-import Feldspar.Compiler.Imperative.Frontend            as Internal hiding (spawn)
+import Feldspar.Compiler.Imperative.Frontend            as Internal --hiding (spawn)
 --import Feldspar.Compiler.Backend.C.Platforms (nativeArrayRules)
 

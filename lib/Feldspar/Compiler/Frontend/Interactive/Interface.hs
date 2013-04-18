@@ -35,61 +35,69 @@ module Feldspar.Compiler.Frontend.Interactive.Interface where
 import Feldspar.Core.Constructs (SyntacticFeld)
 import Feldspar.Compiler.Compiler
 import Feldspar.Compiler.Imperative.FromCore
-import Feldspar.Compiler.Backend.C.Options
-import Feldspar.Compiler.Backend.C.Library
-import Feldspar.Compiler.Imperative.Representation (Module)
+--import Feldspar.Compiler.Backend.C.Options
+--import Feldspar.Compiler.Backend.C.Library
+--import Feldspar.Compiler.Imperative.Representation (Module)
 
 import Data.Char
 import Control.Monad (when)
 import System.FilePath (takeBaseName, (<.>))
 
+import Program
+import Gen
+
+
 -- ================================================================================================
 --  == Interactive compilation
 -- ================================================================================================
 
-compile :: (SyntacticFeld t) => t -> FilePath -> String -> Options -> IO ()
-compile prg fileName functionName opts = do
-    writeFile cfile $ unlines [ "#include \"" ++ takeBaseName fileName <.> "h" ++ "\""
-                              , sourceCode $ sctccrSource compilationResult
-                              ]
-    writeFile hfile $ withIncludeGuard $ sourceCode $ sctccrHeader compilationResult
-  where
-    hfile = makeHFileName fileName
-    cfile = makeCFileName fileName
-    compilationResult = compileToCCore (OriginalFunctionSignature functionName []) opts prg
-
-    withIncludeGuard code = unlines [ "#ifndef " ++ guardName
-                                    , "#define " ++ guardName
-                                    , ""
-                                    , code
-                                    , ""
-                                    , "#endif // " ++ guardName
-                                    ]
-
-    guardName = map ((\c -> if c `elem` toBeChanged then '_' else c) . toUpper) hfile
-      where
-        toBeChanged = "./\\"
+--compile :: (SyntacticFeld t) => t -> FilePath -> String -> Options -> IO ()
+compile :: (SyntacticFeld t) => t -> FilePath -> IO ()
+compile prg = toFile (gen $ fromCore prg)
+--do
+--    writeFile cfile $ unlines [ "#include \"" ++ takeBaseName fileName <.> "h" ++ "\""
+--                              , sourceCode $ sctccrSource compilationResult
+--                              ]
+--    writeFile hfile $ withIncludeGuard $ sourceCode $ sctccrHeader compilationResult
+--  where
+--    hfile = makeHFileName fileName
+--    cfile = makeCFileName fileName
+--    compilationResult = compileToCCore (OriginalFunctionSignature functionName []) opts prg
+--
+--    withIncludeGuard code = unlines [ "#ifndef " ++ guardName
+--                                    , "#define " ++ guardName
+--                                    , ""
+--                                    , code
+--                                    , ""
+--                                    , "#endif // " ++ guardName
+--                                    ]
+--
+--    guardName = map ((\c -> if c `elem` toBeChanged then '_' else c) . toUpper) hfile
+--      where
+--        toBeChanged = "./\\"
 
 
 icompile :: (SyntacticFeld t) => t -> IO ()
-icompile = icompileWith defaultOptions
-
-icompileWith :: (SyntacticFeld t) => Options -> t -> IO ()
-icompileWith opts = icompile' opts "test"
-
-icompile' :: (SyntacticFeld t) => Options -> String -> t -> IO ()
-icompile' opts functionName prg = do
-    let res = compileToCCore (OriginalFunctionSignature functionName []) opts prg
-    when (printHeader opts) $ do
-      putStrLn "=============== Header ================"
-      putStrLn $ sourceCode $ sctccrHeader res
-      putStrLn "=============== Source ================"
-    putStrLn $ sourceCode $ sctccrSource res
+icompile = showProg . gen . fromCore
+--icompile :: (SyntacticFeld t) => t -> IO ()
+--icompile = icompileWith defaultOptions
+--
+--icompileWith :: (SyntacticFeld t) => Options -> t -> IO ()
+--icompileWith opts = icompile' opts "test"
+--
+--icompile' :: (SyntacticFeld t) => Options -> String -> t -> IO ()
+--icompile' opts functionName prg = do
+--    let res = compileToCCore (OriginalFunctionSignature functionName []) opts prg
+--    when (printHeader opts) $ do
+--      putStrLn "=============== Header ================"
+--      putStrLn $ sourceCode $ sctccrHeader res
+--      putStrLn "=============== Source ================"
+--    putStrLn $ sourceCode $ sctccrSource res
 
 -- | Get the generated core for a program.
-getCore :: (SyntacticFeld t) => t -> Module ()
-getCore = getCore' defaultOptions
-
--- | Print the generated core for a program.
-printCore :: (SyntacticFeld t) => t -> IO ()
-printCore prog = print $ getCore' defaultOptions prog
+--getCore :: (SyntacticFeld t) => t -> Module ()
+--getCore = getCore' defaultOptions
+--
+---- | Print the generated core for a program.
+--printCore :: (SyntacticFeld t) => t -> IO ()
+--printCore prog = print $ getCore' defaultOptions prog

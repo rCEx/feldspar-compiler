@@ -102,9 +102,12 @@ compileBind :: Compile dom dom
 compileBind = error "compileBind"
 
 compileBinds :: Compile dom dom
-  => [(VarId, ASTB (Decor Info dom) Type)] -> Alias -> ((Name -> Program ()) -> Program ()) -> (Alias, ((Name -> Program ()) -> Program ()))
+  => [(VarId, ASTB (Decor Info dom) Type)] 
+  -> Alias
+  -> ((Name -> Program ()) -> Program ()) 
+  -> (Alias, ((Name -> Program ()) -> Program ()))
 compileBinds [] m k = (m,k)
---compileBinds ((v, ASTB e):bs) m k  = k $ \original -> compileBinds' original ((v, ASTB e):bs) m k 
+--compileBinds ((v, ASTB e):bs) m k = k $ \original -> compileBinds original ((v, ASTB e):bs) m k 
 
 --compileBinds' name
                                     -- let info = getInfo e 

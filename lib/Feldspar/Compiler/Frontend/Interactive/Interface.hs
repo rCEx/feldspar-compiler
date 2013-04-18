@@ -53,7 +53,7 @@ import Gen
 
 --compile :: (SyntacticFeld t) => t -> FilePath -> String -> Options -> IO ()
 compile :: (SyntacticFeld t) => t -> FilePath -> IO ()
-compile prg = toFile (gen $ fromCore prg)
+compile prg filepath = toFile filepath (gen $ fromCore prg)
 --do
 --    writeFile cfile $ unlines [ "#include \"" ++ takeBaseName fileName <.> "h" ++ "\""
 --                              , sourceCode $ sctccrSource compilationResult

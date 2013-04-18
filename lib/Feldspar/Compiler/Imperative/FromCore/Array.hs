@@ -85,7 +85,7 @@ instance ( Compile dom dom
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
            in k $ \name -> 
-                    Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
+                    Alloc typ [] $ \lenName -> (compileProgWithName (zeroLoc lenName) len (M.insert v name m)) 
                     .>>
                       par (Num 0) (var lenName) $ \e -> 
                         locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))

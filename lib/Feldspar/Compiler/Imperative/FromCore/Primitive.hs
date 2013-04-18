@@ -68,7 +68,7 @@ instance Compile dom dom => Compile Semantics dom
 
     compileProgBasic n (Sem name _) info args m = 
         let argExprs = listArgs (head . flip compileExpr m) args
-        in loc n $ head [toInfix name argExprs ]
+        in n $ head [toInfix name argExprs ]
 
 -- TODO doesn't cover all cases
 toInfix :: String -> [Expr] -> Expr
@@ -90,35 +90,35 @@ compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Conversion :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (EQ         :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (FLOATING   :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Logic      :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (NUM        :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (ORD        :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Trace      :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 

@@ -78,7 +78,7 @@ instance ( Compile dom dom
                typ = compileTypeRep ta sa
                initExpr = compileExpr init m
           in k $ \out -> 
-             Alloc typ [] $ \lenName -> compileProgWithName lenName len m .>>
+             Alloc typ [] $ \lenName -> compileProgWithName (zeroLoc lenName) len m .>>
              --Alloc typ [] $ \startName -> compileProgWithName startName init m .>>
              --Alloc typ [] $ \state -> 
              for (head initExpr) (var lenName) $ \e -> 

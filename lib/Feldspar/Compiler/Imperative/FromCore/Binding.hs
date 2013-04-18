@@ -60,7 +60,10 @@ instance Compile (Core.Variable :|| Type) dom
   where
     compileExprSym (C' (Core.Variable v)) info Nil m = [var $ variable]
       where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
-    compileProgSym = error "Binding compileProgSym"
+    compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name $ var $ variable
+      where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+
+
     compileProgBasic name (C' (Core.Variable v)) info Nil m = name $ var v'
       where v' = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
 

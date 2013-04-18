@@ -58,6 +58,7 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   
   compileProgBasic = error "cond prim"
 
+  compileExprSym (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) m = error "cond compileExprSym"
           --do
 --        condExpr <- compileExpr cond
 --        (_, tb) <- confiscateBlock $ compileProg loc tHEN

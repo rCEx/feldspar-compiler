@@ -60,11 +60,6 @@ instance Compile (Core.Variable :|| Type) dom
   where
     compileExprSym (C' (Core.Variable v)) info Nil m = [var $ variable]
       where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
-        --error "Binding: CompileExprSym." --return $ var ('v':show v)
-        --env <- ask
-        --case lookup v (alias env) of
-        --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
-        --  Just e  -> return e
     compileProgSym = error "Binding compileProgSym"
     compileProgBasic name (C' (Core.Variable v)) info Nil m = name $ var v'
       where v' = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
@@ -73,7 +68,7 @@ instance Compile (Core.Variable :|| Type) dom
 instance Compile (CLambda Type) dom
   where
     compileProgSym = error "Can only compile top-level Lambda"
-    compileProgBasic = error "Binding Basic2"
+    compileProgBasic = error "Can only compile top-level Lambda: ProgBasic"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where

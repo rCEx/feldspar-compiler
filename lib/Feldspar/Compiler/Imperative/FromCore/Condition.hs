@@ -35,6 +35,7 @@
 module Feldspar.Compiler.Imperative.FromCore.Condition where
 
 import Program 
+import Expr
 import Procedure
 
 import Language.Syntactic
@@ -58,7 +59,10 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
   
   compileProgBasic = error "cond prim"
 
-  compileExprSym (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) m = error "cond compileExprSym"
+  compileExprSym (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) m = let c = head $ compileExpr cond m
+                                                                        t = head $ compileExpr tHEN m
+                                                                        f = head $ compileExpr eLSE m
+                                                                    in [Cond c t f]
           --do
 --        condExpr <- compileExpr cond
 --        (_, tb) <- confiscateBlock $ compileProg loc tHEN

@@ -166,8 +166,6 @@ fromCore prog = BasicProc result
     result = compileProgTop [] ast M.empty
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
-    info       = getInfo ast
-    typ        = compileTypeRep (infoType info) (infoSize info)
 
 
     --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState

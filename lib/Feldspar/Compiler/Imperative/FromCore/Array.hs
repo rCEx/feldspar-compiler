@@ -100,7 +100,6 @@ instance ( Compile dom dom
               ta' = argType $ infoType $ getInfo lam2
               sa' = fst $ infoSize $ getInfo lam2
               typ' = compileTypeRep ta' sa'
-              --vars = map fst bs1
           in error "Sequential"
                 
                 --for (Num 0) (head $ compileExpr (len) m) $ \e -> Skip

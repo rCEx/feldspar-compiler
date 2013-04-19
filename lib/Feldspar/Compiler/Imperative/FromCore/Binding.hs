@@ -55,16 +55,17 @@ import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
 import Expr
 import Program
+import qualified Types as PIRE
 
 instance Compile (Core.Variable :|| Type) dom
   where
     compileExprSym (C' (Core.Variable v)) info Nil m = [var $ variable]
-      where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+      where variable = fromMaybe (error "Binding  ExprSym: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name $ var $ variable
-      where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+      where variable = fromMaybe (error "Binding ProgSym: Could not find mapping in Alias for" ++ show v) $ M.lookup v m
 
     compileProgBasic name (C' (Core.Variable v)) info Nil m = name $ var v'
-      where v' = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+      where v' = fromMaybe (error "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
 
 instance Compile (CLambda Type) dom
@@ -74,9 +75,15 @@ instance Compile (CLambda Type) dom
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where
-  compileProgBasic = error "Binding basic3"
---  where
---    compileProgSym Let _ loc (a :* (lam :$ body) :* Nil)
+  compileProgBasic name Let _ (a :* (lam :$ body) :* Nil) m
+        | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
+            compileLetWithName a (getInfo lam) v name (M.insert v name' m)
+              where (Assign name' _ _) = name $ var "Binding: ThisNameShouldNotMatter"
+
+--  compileProgSym Let _ k (a :* (lam :$ body) :* Nil) m
+--        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+--        = compileLet a (getInfo lam) v (Alloc PIRE.TInt []) m
+
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
 --        = do var <- compileLet a (getInfo lam) v
 --             withAlias v var $ compileProg loc body
@@ -87,7 +94,16 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 --             withAlias v var $ compileExpr body
 
 --compileLet :: Compile dom dom
---           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> CodeWriter (Expression ())
+--           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> ((Name -> Program ()) -> Program ()) -> CodeWriter () --CodeWriter (Expression ())
+--compileLet a info v k m = k $ \name -> compileProgWithName (loc name) a (M.insert v name m)
+
+compileLetWithName :: Compile dom dom
+           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> Loc Expr () -> CodeWriter () --CodeWriter (Expression ())
+compileLetWithName a info v loc' m = compileProgWithName loc' a m
+
+
+
+
 --compileLet a info v
 --    = do
 --        let ta  = argType $ infoType info
@@ -101,20 +117,6 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 compileBind :: Compile dom dom
   => (VarId, ASTB (Decor Info dom) Type) -> CodeWriter ()
 compileBind = error "compileBind"
-
-compileBinds :: Compile dom dom
-  => [(VarId, ASTB (Decor Info dom) Type)] 
-  -> Alias
-  -> ((Name -> Program ()) -> Program ()) 
-  -> (Alias, ((Name -> Program ()) -> Program ()))
-compileBinds [] m k = (m,k)
---compileBinds ((v, ASTB e):bs) m k = k $ \original -> compileBinds original ((v, ASTB e):bs) m k 
-
---compileBinds' name
-                                    -- let info = getInfo e 
-                                    -- in Alloc (compileTypeRep (infoType info) (infoSize info)) []
-                                    --      $ \name -> compileBinds bs (M.insert name v m) k
-
 --     = do
 --         let info = getInfo e
 --             var = mkVar (compileTypeRep (infoType info) (infoSize info)) v

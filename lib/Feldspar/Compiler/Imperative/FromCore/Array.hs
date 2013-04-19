@@ -56,7 +56,7 @@ import Feldspar.Compiler.Imperative.Frontend
 --                                                    Block(..), Size(..),
 --                                                    Signedness(..), typeof)
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
-import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind, compileBinds)
+import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 
 import Program
 import Expr
@@ -94,15 +94,17 @@ instance ( Compile dom dom
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
         , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
-        = let ta = argType $ infoType $ getInfo lam1
-              sa = fst $ infoSize $ getInfo lam1
-              typ = compileTypeRep ta sa
-              ta' = argType $ infoType $ getInfo lam2
-              sa' = fst $ infoSize $ getInfo lam2
-              typ' = compileTypeRep ta' sa'
-          in error "Sequential"
-                
-                --for (Num 0) (head $ compileExpr (len) m) $ \e -> Skip
+        = let ta1 = argType $ infoType $ getInfo lam1
+              sa1 = fst $ infoSize $ getInfo lam1
+              typ1 = compileTypeRep ta1 sa1
+              ta2 = argType $ infoType $ getInfo lam2
+              sa2 = fst $ infoSize $ getInfo lam2
+              typ2 = compileTypeRep ta2 sa2
+          in k $ \name -> Alloc typ1 [] $ \stName ->
+              Assign stName [Num 0] (head $ compileExpr st m) .>>
+              (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
+                compileProgWithName (Assign stName [Num 0]) step (M.insert v stName (M.insert s (nameFromVar e) m)))
+              .>> loc name (Index stName [Num 0])
                 
                   
 --            blocks <- mapM (confiscateBlock . compileBind) bs1
@@ -122,11 +124,11 @@ instance ( Compile dom dom
 --                                    toBlock $ Sequence (concat lets ++ body ++
 --                                         [copyProg (ArrayElem (AddrOf loc) ix) [StructField tmp "member1"]
 --                                         ])]
-    compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
-            | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
-            , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
-            , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
-            = error "Sequential2"
+   -- compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
+   --         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
+   --         , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
+   --         , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
+   --         = error "Sequential2"
 
   
     compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes parameter is used.

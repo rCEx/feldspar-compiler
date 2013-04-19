@@ -37,6 +37,7 @@ module Feldspar.Compiler.Imperative.FromCore.Primitive where
 
 
 import Language.Syntactic
+import Prelude hiding (LT)
 
 import Feldspar.Core.Types (Type)
 import Feldspar.Core.Interpretation
@@ -68,19 +69,22 @@ instance Compile dom dom => Compile Semantics dom
 
     compileProgBasic n (Sem name _) info args m = 
         let argExprs = listArgs (head . flip compileExpr m) args
-        in loc n $ head [toInfix name argExprs ]
+        in n $ head [toInfix name argExprs ]
 
 -- TODO doesn't cover all cases
 toInfix :: String -> [Expr] -> Expr
-toInfix s es | s == "(*)"
-             , [a,b] <- es = a .* b
-             | s == "(+)"
-             , [a,b] <- es = a .+ b
-             | s == "(-)"
-             , [a,b] <- es = a .- b
+toInfix s es | s == "(*)" , [a,b] <- es = a .* b
+             | s == "(+)" , [a,b] <- es = a .+ b
+             | s == "(-)" , [a,b] <- es = a .- b
+             | s == "(<)" , [a,b] <- es = BinOp $ Expr.LT a b
+             | s == "(<=)" , [a,b] <- es = BinOp $ Expr.LTE a b
+             | s == "(>)" , [a,b] <- es = BinOp $ Expr.GT a b
+             | s == "(>=)" , [a,b] <- es = BinOp $ Expr.GTE a b
+             | s == "(==)" , [a,b] <- es = BinOp $ Expr.EQ a b
+             | s == "(!=)" , [a,b] <- es = BinOp $ Expr.NEQ a b
              | otherwise  = Call (var s) es
---
----- | Convenient implementation of 'compileExprSym' for primitive functions
+
+-- | Convenient implementation of 'compileExprSym' for primitive functions
 compilePrim :: (Semantic expr, Compile dom dom)
     => (expr :|| Type) a
     -> Info (DenResult a)
@@ -90,35 +94,35 @@ compilePrim (C' s) = compileExprSym $ semantics s
 
 instance Compile dom dom => Compile (BITS       :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (COMPLEX    :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Conversion :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (EQ         :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (FLOATING   :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (FRACTIONAL :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (INTEGRAL   :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Logic      :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (NUM        :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (ORD        :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 instance Compile dom dom => Compile (Trace      :|| Type) dom where compileExprSym = compilePrim
                                                                     compileProgBasic n e info args  = 
-                                                                      loc n . head . compilePrim e info args
+                                                                      n . head . compilePrim e info args
 

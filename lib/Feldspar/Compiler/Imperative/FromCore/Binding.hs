@@ -60,16 +60,18 @@ instance Compile (Core.Variable :|| Type) dom
   where
     compileExprSym (C' (Core.Variable v)) info Nil m = [var $ variable]
       where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
-        --error "Binding: CompileExprSym." --return $ var ('v':show v)
-        --env <- ask
-        --case lookup v (alias env) of
-        --  Nothing -> return $ mkVar (compileTypeRep (infoType info) (infoSize info)) v
-        --  Just e  -> return e
-    compileProgBasic = error "Binding Basic"
+    compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name $ var $ variable
+      where variable = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+
+
+    compileProgBasic name (C' (Core.Variable v)) info Nil m = name $ var v'
+      where v' = fromMaybe (error "Binding: Could not find mapping in Alias.") $ M.lookup v m
+
+
 instance Compile (CLambda Type) dom
   where
     compileProgSym = error "Can only compile top-level Lambda"
-    compileProgBasic = error "Binding Basic2"
+    compileProgBasic = error "Can only compile top-level Lambda: ProgBasic"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where
@@ -102,9 +104,12 @@ compileBind :: Compile dom dom
 compileBind = error "compileBind"
 
 compileBinds :: Compile dom dom
-  => [(VarId, ASTB (Decor Info dom) Type)] -> Alias -> ((Name -> Program ()) -> Program ()) -> (Alias, ((Name -> Program ()) -> Program ()))
+  => [(VarId, ASTB (Decor Info dom) Type)] 
+  -> Alias
+  -> ((Name -> Program ()) -> Program ()) 
+  -> (Alias, ((Name -> Program ()) -> Program ()))
 compileBinds [] m k = (m,k)
---compileBinds ((v, ASTB e):bs) m k  = k $ \original -> compileBinds' original ((v, ASTB e):bs) m k 
+--compileBinds ((v, ASTB e):bs) m k = k $ \original -> compileBinds original ((v, ASTB e):bs) m k 
 
 --compileBinds' name
                                     -- let info = getInfo e 

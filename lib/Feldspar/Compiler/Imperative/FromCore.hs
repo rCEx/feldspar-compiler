@@ -115,16 +115,15 @@ compileProgTop :: ( Compile dom dom
                   , ConstrainedBy dom Typeable
                   ) =>
           [(VarId, ASTB (Decor Info dom) Type)] ->
-          ((Name -> Program ()) -> Program ()) ->
           ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgTop bs k (lam :$ body) m
+compileProgTop bs (lam :$ body) m
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
     = do let ta  = argType $ infoType $ getInfo lam
              sa  = fst $ infoSize $ getInfo lam
              typ = compileTypeRep ta sa
-         InParam typ $ \name -> compileProgTop bs k body (M.insert v name m)
+         InParam typ $ \name -> compileProgTop bs body (M.insert v name m)
 
-compileProgTop bs k (lt :$ e :$ (lam :$ body)) m
+compileProgTop bs (lt :$ e :$ (lam :$ body)) m
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam
   , Just Let <- prj lt
   , Just (C' Literal{}) <- prjF e -- Input on form let x = n in e
@@ -142,7 +141,7 @@ compileProgTop bs k (lt :$ e :$ (lam :$ body)) m
 --               Just (SubConstr2 (Lambda v)) -> mkVariable outType v
 --    bd = sequenceProgs $ blockBody $ block $ snd $
 --          evalRWS (compileProg (varToExpr var) e) (initReader opt) initState
-compileProgTop bs k e@(lt :$ _ :$ _) m
+compileProgTop bs e@(lt :$ _ :$ _) m
   | Just Let <- prj lt
   , (bs', body) <- collectLetBinders e
   = error "compielProgTop: letBinding without lambda NYI." --compileProgTop (reverse bs' ++ bs) body
@@ -156,42 +155,19 @@ compileProgTop bs k e@(lt :$ _ :$ _) m
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs k a m = compileProg k a m
-
-
-compileProgTop' :: ( Compile dom dom
-                   , Project (CLambda Type) dom
-                   , Project Let dom
-                   , Project (Literal :|| Type) dom
-                   , ConstrainedBy dom Typeable
-                   ) =>
-           [(VarId, ASTB (Decor Info dom) Type)] ->
-
-
-
-           ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgTop' bs (lam :$ body) m
-    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do let ta  = argType $ infoType $ getInfo lam
-             sa  = fst $ infoSize $ getInfo lam
-             typ = compileTypeRep ta sa
-         compileProgTop bs (InParam typ) body m--  body (M.insert v name m)
-
-compileProgTop' bs a m = compileProg (OutParam typ) a m
+compileProgTop bs a m = compileProg (OutParam typ) a m
   where info = getInfo a
         typ = compileTypeRep (infoType info) (infoSize info)
 
 
-
-
-fromCore :: SyntacticFeld a => a -> IO ()
-fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
+fromCore :: SyntacticFeld a => a -> PIRE.Program ()
+fromCore prog = BasicProc result
   where
-    result = compileProgTop [] outParam ast M.empty
+    result = compileProgTop [] ast M.empty
     ast        = reifyFeld (frontendOpts opt) N32 prog
     opt        = Options {frontendOpts = defaultFeldOpts}
-    outParam   = OutParam typ
-    typ        = PIRE.TPointer PIRE.TInt
+    info       = getInfo ast
+    typ        = compileTypeRep (infoType info) (infoSize info)
 
 
     --runRWS (compileProgTop [] ast) () initState --evalRWS (compileProgTop [] ast) (initReader opt) initState

@@ -85,9 +85,9 @@ instance ( Compile dom dom
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
            in k $ \name -> 
-                    Alloc typ [] $ \lenName -> (compileProgWithName lenName len (M.insert v name m)) 
-                    .>>
-                      par (Num 0) (var lenName) $ \e -> 
+                   -- Alloc typ [] $ \lenName -> (compileProgWithName (zeroLoc lenName) len (M.insert v name m)) 
+                   -- .>>
+                      par (Num 0) (head $ compileExpr len m) $ \e -> --(var lenName) $ \e -> 
                         locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
     
     compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
@@ -100,9 +100,10 @@ instance ( Compile dom dom
               ta' = argType $ infoType $ getInfo lam2
               sa' = fst $ infoSize $ getInfo lam2
               typ' = compileTypeRep ta' sa'
-              (m',k') = compileBinds bs1 m k
-          in k' $ \name -> 
-                for (Num 0) (head $ compileExpr (len) m) $ \e -> Skip
+              --vars = map fst bs1
+          in error "Sequential"
+                
+                --for (Num 0) (head $ compileExpr (len) m) $ \e -> Skip
                 
                   
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

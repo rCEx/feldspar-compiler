@@ -51,120 +51,120 @@ import Feldspar.Core.Interpretation (defaultFeldOpts)
 import Feldspar.Compiler.Imperative.FromCore
 --import Feldspar.Compiler.Imperative.Plugin.IVars
 
-data OriginalFunctionSignature = OriginalFunctionSignature {
-    originalFunctionName   :: String,
-    originalParameterNames :: [Maybe String]
-} deriving (Show)
-
-data SplitModuleDescriptor = SplitModuleDescriptor
-    { smdSource :: Module ()
-    , smdHeader :: Module ()
-    }
-
-data SplitCompToCCoreResult = SplitCompToCCoreResult
-    { sctccrSource :: CompToCCoreResult ()
-    , sctccrHeader :: CompToCCoreResult ()
-    }
-
-moduleSplitter :: Module () -> SplitModuleDescriptor
-moduleSplitter m = SplitModuleDescriptor {
-    smdHeader = Module (hdr ++ createProcDecls (entities m)),
-    smdSource = Module body
-} where
-    (hdr, body) = partition belongsToHeader (entities m)
-    belongsToHeader :: Entity () -> Bool
-    belongsToHeader StructDef{} = True
-    belongsToHeader ProcDecl{}  = True
-    belongsToHeader _           = False
-    -- TODO These only belongs in the header iff the types are used in a
-    -- function interface
-    createProcDecls :: [Entity ()] -> [Entity ()]
-    createProcDecls = concatMap defToDecl
-    defToDecl :: Entity () -> [Entity ()]
-    defToDecl (ProcDef n inp outp _) = [ProcDecl n inp outp]
-    defToDecl _ = []
-
-moduleToCCore :: Options -> Module () -> CompToCCoreResult ()
-moduleToCCore opts mdl = res { sourceCode = incls ++ sourceCode res }
-  where
-    res = compToCWithInfos opts mdl
-    incls = genIncludeLines opts Nothing
-
-
--- | Compiler core
--- This functionality should not be duplicated. Instead, everything should call this and only do a trivial interface adaptation.
-compileToCCore
-  :: SyntacticFeld c
-  => OriginalFunctionSignature -> Options -> c
-  -> SplitCompToCCoreResult
-compileToCCore funSig coreOptions prg =
-    createSplit $ moduleToCCore coreOptions <$> separatedModules
-      where
-        separatedModules = moduleSeparator
-                         $ executePluginChain funSig coreOptions prg
-
-        moduleSeparator modules = [header, source]
-          where (SplitModuleDescriptor header source) = moduleSplitter modules
-
-        createSplit [header, source] = SplitCompToCCoreResult header source
-
-genIncludeLines :: Options -> Maybe String -> String
-genIncludeLines opts mainHeader = concatMap include incs ++ "\n\n"
-  where
-    include []            = ""
-    include fname@('<':_) = "#include " ++ fname ++ "\n"
-    include fname         = "#include \"" ++ fname ++ "\"\n"
-    incs = includes (platform opts) ++ [fromMaybe "" mainHeader]
-
--- | Predefined options
-
-defaultOptions :: Options
-defaultOptions
-    = Options
-    { platform          = c99
-    , unroll            = NoUnroll
-    , debug             = NoDebug
-    , memoryInfoVisible = True
-    , printHeader       = False
-    , rules             = []
-    , frontendOpts      = defaultFeldOpts
-    , nestSize          = 2
-    }
-
-c99PlatformOptions :: Options
-c99PlatformOptions              = defaultOptions
-
-tic64xPlatformOptions :: Options
-tic64xPlatformOptions           = defaultOptions { platform = tic64x }
-
-unrollOptions :: Options
-unrollOptions                   = defaultOptions { unroll = Unroll 8 }
-
-noPrimitiveInstructionHandling :: Options
-noPrimitiveInstructionHandling  = defaultOptions { debug = NoPrimitiveInstructionHandling }
-
-noMemoryInformation :: Options
-noMemoryInformation             = defaultOptions { memoryInfoVisible = False }
-
--- | Plugin system
-
-pluginChain :: ExternalInfoCollection -> Module () -> Module ()
-pluginChain externalInfo
-    = executePlugin RulePlugin (ruleExternalInfo externalInfo)
-    . executePlugin RulePlugin (primitivesExternalInfo externalInfo)
-    . executePlugin IVarPlugin ()
-
-data ExternalInfoCollection = ExternalInfoCollection
-    { primitivesExternalInfo :: ExternalInfo RulePlugin
-    , ruleExternalInfo       :: ExternalInfo RulePlugin
-    }
-
-executePluginChain :: SyntacticFeld c
-                   => OriginalFunctionSignature
-                   -> Options -> c -> Module ()
-executePluginChain OriginalFunctionSignature{..} opt prg =
-  pluginChain ExternalInfoCollection
-    { primitivesExternalInfo = opt{ rules = platformRules $ platform opt }
-    , ruleExternalInfo       = opt
-    } $ fromCore opt (encodeFunctionName originalFunctionName) prg
-
+--data OriginalFunctionSignature = OriginalFunctionSignature {
+--    originalFunctionName   :: String,
+--    originalParameterNames :: [Maybe String]
+--} deriving (Show)
+--
+--data SplitModuleDescriptor = SplitModuleDescriptor
+--    { smdSource :: Module ()
+--    , smdHeader :: Module ()
+--    }
+--
+--data SplitCompToCCoreResult = SplitCompToCCoreResult
+--    { sctccrSource :: CompToCCoreResult ()
+--    , sctccrHeader :: CompToCCoreResult ()
+--    }
+--
+--moduleSplitter :: Module () -> SplitModuleDescriptor
+--moduleSplitter m = SplitModuleDescriptor {
+--    smdHeader = Module (hdr ++ createProcDecls (entities m)),
+--    smdSource = Module body
+--} where
+--    (hdr, body) = partition belongsToHeader (entities m)
+--    belongsToHeader :: Entity () -> Bool
+--    belongsToHeader StructDef{} = True
+--    belongsToHeader ProcDecl{}  = True
+--    belongsToHeader _           = False
+--    -- TODO These only belongs in the header iff the types are used in a
+--    -- function interface
+--    createProcDecls :: [Entity ()] -> [Entity ()]
+--    createProcDecls = concatMap defToDecl
+--    defToDecl :: Entity () -> [Entity ()]
+--    defToDecl (ProcDef n inp outp _) = [ProcDecl n inp outp]
+--    defToDecl _ = []
+--
+--moduleToCCore :: Options -> Module () -> CompToCCoreResult ()
+--moduleToCCore opts mdl = res { sourceCode = incls ++ sourceCode res }
+--  where
+--    res = compToCWithInfos opts mdl
+--    incls = genIncludeLines opts Nothing
+--
+--
+---- | Compiler core
+---- This functionality should not be duplicated. Instead, everything should call this and only do a trivial interface adaptation.
+--compileToCCore
+--  :: SyntacticFeld c
+--  => OriginalFunctionSignature -> Options -> c
+--  -> SplitCompToCCoreResult
+--compileToCCore funSig coreOptions prg =
+--    createSplit $ moduleToCCore coreOptions <$> separatedModules
+--      where
+--        separatedModules = moduleSeparator
+--                         $ executePluginChain funSig coreOptions prg
+--
+--        moduleSeparator modules = [header, source]
+--          where (SplitModuleDescriptor header source) = moduleSplitter modules
+--
+--        createSplit [header, source] = SplitCompToCCoreResult header source
+--
+--genIncludeLines :: Options -> Maybe String -> String
+--genIncludeLines opts mainHeader = concatMap include incs ++ "\n\n"
+--  where
+--    include []            = ""
+--    include fname@('<':_) = "#include " ++ fname ++ "\n"
+--    include fname         = "#include \"" ++ fname ++ "\"\n"
+--    incs = includes (platform opts) ++ [fromMaybe "" mainHeader]
+--
+---- | Predefined options
+--
+--defaultOptions :: Options
+--defaultOptions
+--    = Options
+--    { platform          = c99
+--    , unroll            = NoUnroll
+--    , debug             = NoDebug
+--    , memoryInfoVisible = True
+--    , printHeader       = False
+--    , rules             = []
+--    , frontendOpts      = defaultFeldOpts
+--    , nestSize          = 2
+--    }
+--
+--c99PlatformOptions :: Options
+--c99PlatformOptions              = defaultOptions
+--
+--tic64xPlatformOptions :: Options
+--tic64xPlatformOptions           = defaultOptions { platform = tic64x }
+--
+--unrollOptions :: Options
+--unrollOptions                   = defaultOptions { unroll = Unroll 8 }
+--
+--noPrimitiveInstructionHandling :: Options
+--noPrimitiveInstructionHandling  = defaultOptions { debug = NoPrimitiveInstructionHandling }
+--
+--noMemoryInformation :: Options
+--noMemoryInformation             = defaultOptions { memoryInfoVisible = False }
+--
+---- | Plugin system
+--
+--pluginChain :: ExternalInfoCollection -> Module () -> Module ()
+--pluginChain externalInfo
+--    = executePlugin RulePlugin (ruleExternalInfo externalInfo)
+--    . executePlugin RulePlugin (primitivesExternalInfo externalInfo)
+--    . executePlugin IVarPlugin ()
+--
+--data ExternalInfoCollection = ExternalInfoCollection
+--    { primitivesExternalInfo :: ExternalInfo RulePlugin
+--    , ruleExternalInfo       :: ExternalInfo RulePlugin
+--    }
+--
+--executePluginChain :: SyntacticFeld c
+--                   => OriginalFunctionSignature
+--                   -> Options -> c -> Module ()
+--executePluginChain OriginalFunctionSignature{..} opt prg =
+--  pluginChain ExternalInfoCollection
+--    { primitivesExternalInfo = opt{ rules = platformRules $ platform opt }
+--    , ruleExternalInfo       = opt
+--    } $ fromCore opt (encodeFunctionName originalFunctionName) prg
+--

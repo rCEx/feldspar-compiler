@@ -159,6 +159,31 @@ compileProgTop bs k e@(lt :$ _ :$ _) m
 compileProgTop bs k a m = compileProg k a m
 
 
+compileProgTop' :: ( Compile dom dom
+                   , Project (CLambda Type) dom
+                   , Project Let dom
+                   , Project (Literal :|| Type) dom
+                   , ConstrainedBy dom Typeable
+                   ) =>
+           [(VarId, ASTB (Decor Info dom) Type)] ->
+
+
+
+           ASTF (Decor Info dom) a -> CodeWriter ()
+compileProgTop' bs (lam :$ body) m
+    | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+    = do let ta  = argType $ infoType $ getInfo lam
+             sa  = fst $ infoSize $ getInfo lam
+             typ = compileTypeRep ta sa
+         compileProgTop bs (InParam typ) body m--  body (M.insert v name m)
+
+compileProgTop' bs a m = compileProg (OutParam typ) a m
+  where info = getInfo a
+        typ = compileTypeRep (infoType info) (infoSize info)
+
+
+
+
 fromCore :: SyntacticFeld a => a -> IO ()
 fromCore prog = PIRE.showProg $ PIRE.gen $ BasicProc $ result
   where

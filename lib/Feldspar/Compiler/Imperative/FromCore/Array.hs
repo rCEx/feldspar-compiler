@@ -100,11 +100,11 @@ instance ( Compile dom dom
               ta2 = argType $ infoType $ getInfo lam2
               sa2 = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
-          in k $ \name -> Alloc typ1 [] $ \stName ->
-              Assign stName [Num 0] (head $ compileExpr st m) .>>
+          in k $ \name -> Decl typ2 $ \stName ->
+              loc stName (head $ compileExpr st m) .>>
               (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
-                compileProgWithName (Assign stName [Num 0]) step (M.insert v stName (M.insert s (nameFromVar e) m)))
-              .>> loc name (Index stName [Num 0])
+                compileProgWithName (loc stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
+              .>> loc name $ var stName
                 
                   
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

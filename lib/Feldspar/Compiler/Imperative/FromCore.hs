@@ -155,7 +155,7 @@ compileProgTop bs e@(lt :$ _ :$ _) m
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs a m = compileProg (OutParam typ) a m
+compileProgTop bs a m = compileProg (OutParam $ PIRE.TPointer typ) a m
   where info = getInfo a
         typ = compileTypeRep (infoType info) (infoSize info)
 

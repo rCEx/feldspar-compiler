@@ -78,8 +78,11 @@ instance ( Compile dom dom
                typ = compileTypeRep ta sa
                initExpr = head $ compileExpr init m
           in k $ \out -> 
-             for initExpr (head $ compileExpr len m) $ \e -> -- (var lenName) $ \e -> 
-               loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
+              Decl typ $ \im -> loc im (deref $ var out) .>>
+             (for initExpr (head $ compileExpr len m) $ \e -> -- (var lenName) $ \e -> 
+               loc im $ head $ compileExpr ixf $ M.insert st im $ M.insert ix (nameFromVar e) m) .>>
+             locDeref out $ var im
+              
 
         --do
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

@@ -78,7 +78,7 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   compileProgBasic name Let _ (a :* (lam :$ body) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
             compileLetWithName a (getInfo lam) v name (M.insert v name' m)
-              where (Assign name' _ _) = name $ var "Binding: ThisNameShouldNotMatter"
+              where (Assign (Index name' _) _ _) = name $ var "Binding: ThisNameShouldNotMatter"
 
 --  compileProgSym Let _ k (a :* (lam :$ body) :* Nil) m
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam

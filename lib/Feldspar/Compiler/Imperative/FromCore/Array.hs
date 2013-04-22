@@ -133,7 +133,21 @@ instance ( Compile dom dom
   
     compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes parameter is used.
     compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]
-    compileProgBasic name _ = error "compileProgBasic Array"
+    compileExprSym (C' SetIx) info args m = error "Array ExprSym1"
+    compileExprSym (C' SetLength) info args m = error "Array ExprSym2"
+    compileExprSym (C' Append) info args m = error "Array ExprSym3"
+    compileExprSym (C' Parallel) info args m = error "Array ExprSym4"
+    compileExprSym (C' Sequential) info args m = error "Array ExprSym5"
+
+
+    compileProgBasic name (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
+      | Just (SubConstr2 (Lambda v)) <- prjLambda lam
+        =  let ta = argType $ infoType $ getInfo lam
+               sa = fst $ infoSize $ getInfo lam
+               typ = compileTypeRep ta sa
+           in for (Num 0) (head $ compileExpr len m) $ \e -> 
+                        name (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
+
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"
 --    compileProgBasic name (C' SetIx) = error "getLength basic"

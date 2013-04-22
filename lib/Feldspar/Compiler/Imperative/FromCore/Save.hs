@@ -43,10 +43,12 @@ import Feldspar.Core.Constructs.Save
 
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 
-
+import Expr
 
 instance Compile dom dom => Compile (Save :|| Type) dom
   where
-    compileProgSym (C' Save) _ k (a :* Nil) = error "Save" -- compileProg loc a
-    compileProgBasic = error "Save basic"
+    compileProgSym (C' Save) _ k (a :* Nil)  m = error "Save" -- compileProg loc a
+    compileProgBasic name (C' Save) info (a :* Nil) m = compileProgWithName name a m
+
+    compileExprSym = error "Save undefined for ExprSym"
 

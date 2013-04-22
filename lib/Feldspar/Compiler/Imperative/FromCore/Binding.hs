@@ -128,9 +128,10 @@ compileBinds :: Compile dom dom
   -> [(VarId, ASTB (Decor Info dom) Type)]
   -> ASTF (Decor Info dom) a
   -> CodeWriter ()
-compileBinds k [] ast m = compileProg k ast m
+compileBinds k [] ast m = k $ \out -> Decl PIRE.TInt $ \name -> compileProgWithName name ast m .>> locDeref out (var name)
+--compileProg k ast m
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
-                                        in Decl typ $ \n -> compileProgWithName n b m .>>
+                                        in Alloc typ [] $ \n -> compileProgWithName n b m .>>
                                                             compileBinds k bs ast (M.insert v n m)
 

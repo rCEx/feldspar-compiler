@@ -145,8 +145,8 @@ instance ( Compile dom dom
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
-           in par (Num 0) (head $ compileExpr len m) $ \e -> 
-                        Assign (var name) [e] (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
+           in for (Num 0) (head $ compileExpr len m) $ \e -> 
+                        locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"

@@ -103,7 +103,7 @@ instance ( Compile dom dom
           in k $ \name -> Decl typ2 $ \stName ->
               loc stName (head $ compileExpr st m) .>>
               (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
-                compileProgWithName (loc stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
+                compileProgWithName (stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
               .>> locDeref name $ var stName
                 
                   
@@ -145,8 +145,8 @@ instance ( Compile dom dom
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
-           in for (Num 0) (head $ compileExpr len m) $ \e -> 
-                        name (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
+           in par (Num 0) (head $ compileExpr len m) $ \e -> 
+                        Assign (var name) [e] (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"

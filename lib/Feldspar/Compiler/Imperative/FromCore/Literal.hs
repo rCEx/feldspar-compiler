@@ -69,7 +69,7 @@ instance Compile (Literal :|| Core.Type) dom
           locs name = zipWith ($) (map (locArray name . Num) [0..]) literals
           literals  = literal (infoType info) (infoSize info) a 
     
-    compileProgBasic name (C' (Literal a)) info Nil m = name $ head $ literal (infoType info) (infoSize info) a
+    compileProgBasic name (C' (Literal a)) info Nil m = loc name $ head $ literal (infoType info) (infoSize info) a
     
 
 literal :: TypeRep a -> Core.Size a -> a -> [Expr]

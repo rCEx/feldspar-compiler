@@ -64,7 +64,7 @@ instance Compile (Core.Variable :|| Type) dom
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name $ var $ variable
       where variable = fromMaybe (error "Binding ProgSym: Could not find mapping in Alias for" ++ show v) $ M.lookup v m
 
-    compileProgBasic name (C' (Core.Variable v)) info Nil m = name $ var v'
+    compileProgBasic name (C' (Core.Variable v)) info Nil m = loc name $ var v'
       where v' = fromMaybe (error "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
 
@@ -78,7 +78,7 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   compileProgBasic name Let _ (a :* (lam :$ body) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
             compileLetWithName a (getInfo lam) v name (M.insert v name' m)
-              where (Assign (Index name' _) _ _) = name $ var "Binding: ThisNameShouldNotMatter"
+              where (Index name' _) = var "Binding: ThisNameShouldNotMatter"
 
 --  compileProgSym Let _ k (a :* (lam :$ body) :* Nil) m
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
@@ -98,7 +98,7 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 --compileLet a info v k m = k $ \name -> compileProgWithName (loc name) a (M.insert v name m)
 
 compileLetWithName :: Compile dom dom
-           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> Loc Expr () -> CodeWriter () --CodeWriter (Expression ())
+           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> Name -> CodeWriter () --CodeWriter (Expression ())
 compileLetWithName a info v loc' m = compileProgWithName loc' a m
 
 
@@ -131,6 +131,6 @@ compileBinds :: Compile dom dom
 compileBinds k [] ast m = compileProg k ast m
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
-                                        in Decl typ $ \n -> compileProgWithName (loc n) b m .>>
+                                        in Decl typ $ \n -> compileProgWithName n b m .>>
                                                             compileBinds k bs ast (M.insert v n m)
 

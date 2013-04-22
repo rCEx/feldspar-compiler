@@ -122,3 +122,15 @@ compileBind = error "compileBind"
 --             var = mkVar (compileTypeRep (infoType info) (infoSize info)) v
 --         declare var
 --         compileProg var e
+
+compileBinds :: Compile dom dom
+  => ((Name -> Program ()) -> Program ()) 
+  -> [(VarId, ASTB (Decor Info dom) Type)]
+  -> ASTF (Decor Info dom) a
+  -> CodeWriter ()
+compileBinds k [] ast m = compileProg k ast m
+compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
+                                            typ  = compileTypeRep (infoType info) (infoSize info)
+                                        in Decl typ $ \n -> compileProgWithName (loc n) b m .>>
+                                                            compileBinds k bs ast (M.insert v n m)
+

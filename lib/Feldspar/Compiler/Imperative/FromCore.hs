@@ -63,7 +63,7 @@ import Feldspar.Range (upperBound)
 --import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Array ()
-import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
+import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind, compileBinds)
 import Feldspar.Compiler.Imperative.FromCore.Condition ()
 import Feldspar.Compiler.Imperative.FromCore.ConditionM ()
 import Feldspar.Compiler.Imperative.FromCore.Error ()
@@ -144,7 +144,11 @@ compileProgTop bs (lt :$ e :$ (lam :$ body)) m
 compileProgTop bs e@(lt :$ _ :$ _) m
   | Just Let <- prj lt
   , (bs', body) <- collectLetBinders e
-  = error "compielProgTop: letBinding without lambda NYI." --compileProgTop (reverse bs' ++ bs) body
+  = compileProgTop (reverse bs' ++ bs) body m
+--error "compielProgTop: letBinding without lambda NYI." 
+--compileProgTop (reverse bs' ++ bs) body
+
+
 --compileProgTop opt funname bs a = do
 --    let
 --        info       = getInfo a
@@ -155,7 +159,7 @@ compileProgTop bs e@(lt :$ _ :$ _) m
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs a m = compileProg (OutParam $ PIRE.TPointer typ) a m
+compileProgTop bs a m = compileBinds (OutParam $ PIRE.TPointer typ) bs a m -- compileProg (OutParam $ PIRE.TPointer typ) a m
   where info = getInfo a
         typ = compileTypeRep (infoType info) (infoSize info)
 

@@ -38,6 +38,7 @@ module Feldspar.Compiler.Imperative.FromCore.Array where
 
 import Data.List (init)
 import Data.Typeable
+import Data.Maybe
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
@@ -98,8 +99,8 @@ instance ( Compile dom dom
               sa2  = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
           in k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
-          .>> (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
-                compileProgWithName (stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
+          .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
+                compileProgWithName (stName) Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
           .>> loc name $ var stName
                 
                   
@@ -136,13 +137,16 @@ instance ( Compile dom dom
     compileExprSym (C' Sequential) info args m = error "Array ExprSym5"
 
 
-    compileProgBasic name (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
+    compileProgBasic name namec (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
       | Just (SubConstr2 (Lambda v)) <- prjLambda lam
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
-           in for (Num 0) (head $ compileExpr len m) $ \e -> 
-                        locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
+               bound = (head $ compileExpr len m)
+               
+           in maybe Skip (\c -> loc c bound) namec 
+          .>> for (Num 0) bound $ \e -> 
+               locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"

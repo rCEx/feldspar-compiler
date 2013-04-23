@@ -96,7 +96,7 @@ import Debug.Trace
 instance Compile FeldDom FeldDom
   where
     compileProgSym (C' a)     = compileProgSym a--traceShow ("TRACE on ProgSym: " ++ show a) compileProgSym a 
-    compileProgBasic n (C' a) = compileProgBasic n a--traceShow ("TRACE on ProgBasic: " ++ show a) compileProgBasic n a 
+    compileProgBasic n m (C' a) = compileProgBasic n m a--traceShow ("TRACE on ProgBasic: " ++ show a) compileProgBasic n a 
     compileExprSym (C' a)     = compileExprSym a --traceShow ("TRACE on ExprSym: " ++ show a) compileExprSym a
 
 instance Compile Empty dom
@@ -159,7 +159,7 @@ compileProgTop bs e@(lt :$ _ :$ _) m
 --    compileProg outLoc a
 --    return outParam
 
-compileProgTop bs a m = compileBinds (OutParam $ PIRE.TPointer typ) bs a m -- compileProg (OutParam $ PIRE.TPointer typ) a m
+compileProgTop bs a m = compileBinds (OutParam $ PIRE.TPointer typ) bs a m
   where info = getInfo a
         typ = compileTypeRep (infoType info) (infoSize info)
 

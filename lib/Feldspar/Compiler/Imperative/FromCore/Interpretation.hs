@@ -97,6 +97,7 @@ class Compile sub dom
 
     compileProgBasic
         :: Name
+        -> (Maybe Name)
         -> sub a
         -> Info (DenResult a)
         -> Args (AST (Decor Info dom)) a
@@ -116,8 +117,8 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
     compileProgSym (InjL a) = compileProgSym a
     compileProgSym (InjR a) = compileProgSym a
 
-    compileProgBasic n (InjL a) = compileProgBasic n a
-    compileProgBasic n (InjR a) = compileProgBasic n a
+    compileProgBasic n m (InjL a) = compileProgBasic n m a
+    compileProgBasic n m (InjR a) = compileProgBasic n m a
 
     compileExprSym (InjL a) = compileExprSym a
     compileExprSym (InjR a) = compileExprSym a
@@ -175,11 +176,12 @@ compileProgDecor k (Decor info a) args =
 compileProgDecorWithName :: Compile dom dom
     -- => Loc Expr ()
     => Name
+    -> Maybe Name
     -> Decor Info dom a
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
-compileProgDecorWithName name (Decor info a) args =
-    compileDecor info $ compileProgBasic name a info args
+compileProgDecorWithName name cname (Decor info a) args =
+    compileDecor info $ compileProgBasic name cname a info args
 
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
@@ -198,8 +200,8 @@ compileExpr = simpleMatch compileExprDecor
 --
 compileProgWithName :: Compile dom dom =>
     --Loc Expr () -> ASTF (Decor Info dom) a -> CodeWriter ()
-    Name -> ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgWithName name = simpleMatch (compileProgDecorWithName name)
+    Name -> Maybe Name -> ASTF (Decor Info dom) a -> CodeWriter ()
+compileProgWithName name cname = simpleMatch (compileProgDecorWithName name cname)
 
 
 

@@ -123,15 +123,22 @@ compileBind = error "compileBind"
 --         declare var
 --         compileProg var e
 
+
+-- TODO size on alloc.
 compileBinds :: Compile dom dom
   => ((Name -> Program ()) -> Program ()) 
   -> [(VarId, ASTB (Decor Info dom) Type)]
   -> ASTF (Decor Info dom) a
   -> CodeWriter ()
-compileBinds k [] ast m = k $ \out -> Decl PIRE.TInt $ \name -> compileProgWithName name ast m .>> locDeref out (var name)
---compileProg k ast m
+compileBinds k [] ast m = k $ \out -> let info = getInfo ast
+                                          typ  = compileTypeRep (infoType info) (infoSize info)
+                                          body = \name -> compileProgWithName name ast m .>> locDeref out (var name)
+                                      in case typ of
+                                          PIRE.TPointer _ -> Alloc typ [] body
+                                          _               -> Decl typ body
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
-                                        in Alloc typ [] $ \n -> compileProgWithName n b m .>>
-                                                            compileBinds k bs ast (M.insert v n m)
+                                        in Alloc typ [] $ \n -> 
+                                              compileProgWithName n b m .>>
+                                              compileBinds k bs ast (M.insert v n m)
 

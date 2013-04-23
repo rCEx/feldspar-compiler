@@ -107,10 +107,13 @@ instance ( Compile dom dom
                typ = compileTypeRep ta sa
                start = head $ compileExpr init m
                end = head $ compileExpr len m
-          in Decl typ $ \intermed -> loc intermed (deref $ var out) .>>
-             (for start end $ \e ->
-             loc intermed $ head $ compileExpr ixf $ M.insert st intermed $ M.insert ix (nameFromVar e) m) .>>
-             loc out $ var intermed
+          in for start end $ \e ->
+               loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
+
+--Decl typ $ \intermed -> loc intermed (var out) 
+--         .>> (for start end $ \e ->
+--               loc intermed $ head $ compileExpr ixf $ M.insert st intermed $ M.insert ix (nameFromVar e) m) 
+--         .>> loc out $ var intermed
 
     compileProgBasic _ _ _ _ _= error "Loop  basic"
 

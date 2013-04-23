@@ -98,7 +98,21 @@ instance ( Compile dom dom
 --            declare stvar
 --            tellProg [toProg $ Block (concat dss ++ ds) (for (lName ix') len' 1 (toBlock $ Sequence $ concat lets ++ [body]))]
 
-    compileProgBasic  = error "Loop  basic"
+    compileProgBasic out (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m
+        | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
+        , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
+        , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
+        = let  ta = argType $ infoType $ getInfo lam1
+               sa = fst $ infoSize $ getInfo lam1
+               typ = compileTypeRep ta sa
+               start = head $ compileExpr init m
+               end = head $ compileExpr len m
+          in Decl typ $ \intermed -> loc intermed (deref $ var out) .>>
+             (for start end $ \e ->
+             loc intermed $ head $ compileExpr ixf $ M.insert st intermed $ M.insert ix (nameFromVar e) m) .>>
+             loc out $ var intermed
+
+    compileProgBasic _ _ _ _ _= error "Loop  basic"
 
 --
 --    compileProgSym (C' WhileLoop) _ loc (init :* (lam1 :$ cond) :* (lam2 :$ body) :* Nil)

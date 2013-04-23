@@ -104,7 +104,7 @@ instance ( Compile dom dom
               loc stName (head $ compileExpr st m) .>>
               (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
                 compileProgWithName (stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
-              .>> locDeref name $ var stName
+              .>> loc name $ var stName
                 
                   
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

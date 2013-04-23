@@ -133,13 +133,14 @@ compileBinds :: Compile dom dom
 compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                           typ  = compileTypeRep (infoType info) (infoSize info)
                                           body = \name -> compileProgWithName name ast m .>> locDeref out (var name)
+                                      -- Non-pointer return types doesn't require Alloc
                                       in case typ of
-                                          -- Non-pointer return types doesn't require Alloc
                                           PIRE.TPointer _ -> Alloc typ [] body
                                           _               -> Decl typ body
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
-                                        in Alloc typ [] $ \n -> 
-                                              compileProgWithName n b m .>>
-                                              compileBinds k bs ast (M.insert v n m)
+                                            body =  \n -> compileProgWithName n b m .>> compileBinds k bs ast (M.insert v n m)
+                                        in case typ of
+                                            PIRE.TPointer _ -> Alloc typ [] body
+                                            _               -> Decl typ body
 

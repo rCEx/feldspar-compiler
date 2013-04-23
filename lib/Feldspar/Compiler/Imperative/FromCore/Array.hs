@@ -127,7 +127,7 @@ instance ( Compile dom dom
    --         = error "Sequential2"
 
   
-    compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes parameter is used.
+    compileExprSym (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in [Index (n ++ "c") is] -- TODO: assumes a parameter is used.
     compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]
     compileExprSym (C' SetIx) info args m = error "Array ExprSym1"
     compileExprSym (C' SetLength) info args m = error "Array ExprSym2"

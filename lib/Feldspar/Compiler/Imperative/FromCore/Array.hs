@@ -81,30 +81,26 @@ instance ( Compile dom dom
   where
     compileProgSym (C' Parallel) info k (len :* (lam :$ ixf) :* Nil) m
       | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-        =  let ta = argType $ infoType $ getInfo lam
-               sa = fst $ infoSize $ getInfo lam
+        =  let ta  = argType $ infoType $ getInfo lam
+               sa  = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
-           in k $ \name -> 
-                   -- Alloc typ [] $ \lenName -> (compileProgWithName (zeroLoc lenName) len (M.insert v name m)) 
-                   -- .>>
-                      par (Num 0) (head $ compileExpr len m) $ \e -> --(var lenName) $ \e -> 
-                        locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
+           in k $ \name -> par (Num 0) (head $ compileExpr len m) $ \e ->
+                    locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
     
     compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
         , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
-        = let ta1 = argType $ infoType $ getInfo lam1
-              sa1 = fst $ infoSize $ getInfo lam1
+        = let ta1  = argType $ infoType $ getInfo lam1
+              sa1  = fst $ infoSize $ getInfo lam1
               typ1 = compileTypeRep ta1 sa1
-              ta2 = argType $ infoType $ getInfo lam2
-              sa2 = fst $ infoSize $ getInfo lam2
+              ta2  = argType $ infoType $ getInfo lam2
+              sa2  = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
-          in k $ \name -> Decl typ2 $ \stName ->
-              loc stName (head $ compileExpr st m) .>>
-              (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
+          in k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
+          .>> (for (Num 0) (head $ compileExpr (len) m) $ \e -> 
                 compileProgWithName (stName) step (M.insert v stName (M.insert s (nameFromVar e) m)))
-              .>> loc name $ var stName
+          .>> loc name $ var stName
                 
                   
 --            blocks <- mapM (confiscateBlock . compileBind) bs1

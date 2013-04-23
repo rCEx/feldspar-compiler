@@ -102,11 +102,11 @@ instance ( Compile dom dom
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = let  ta = argType $ infoType $ getInfo lam1
-               sa = fst $ infoSize $ getInfo lam1
-               typ = compileTypeRep ta sa
+        = let  ta    = argType $ infoType $ getInfo lam1
+               sa    = fst $ infoSize $ getInfo lam1
+               typ   = compileTypeRep ta sa
                start = head $ compileExpr init m
-               end = head $ compileExpr len m
+               end   = head $ compileExpr len m
           in for start end $ \e ->
                loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
 

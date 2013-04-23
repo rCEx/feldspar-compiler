@@ -148,6 +148,26 @@ instance ( Compile dom dom
           .>> for (Num 0) bound $ \e -> 
                locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
+
+    compileProgBasic name namec (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
+        | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
+        , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
+        , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
+        = let ta1  = argType $ infoType $ getInfo lam1
+              sa1  = fst $ infoSize $ getInfo lam1
+              typ1 = compileTypeRep ta1 sa1
+              ta2  = argType $ infoType $ getInfo lam2
+              sa2  = fst $ infoSize $ getInfo lam2
+              typ2 = compileTypeRep ta2 sa2
+              bound = head $ compileExpr len m
+          in Decl typ2 $ \stName -> loc stName (head $ compileExpr st m)
+         .>> for (Num 0) bound $ \e -> compileProgWithName stName Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
+         .>> locArray name e $ var stName
+         -- k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
+         -- .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
+         --       compileProgWithName (stName) Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
+         -- .>> loc name $ var stName
+
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"
 --    compileProgBasic name (C' SetIx) = error "getLength basic"

@@ -24,5 +24,6 @@ testFold :: Vector1 Index -> Vector1 Index -> Data Index
 testFold xs ys = fold (+) 0 $ xs'
   where xs' = force $ zipWith (*) xs ys
 
-testScan :: Data Index -> Vector1 Index
-testScan x = scan (+) 5 (0 ... x)
+testScan :: Vector1 Index -> Vector1 Index
+testScan xs = scan (+) 0 xs
+

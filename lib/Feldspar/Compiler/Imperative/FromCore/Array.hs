@@ -134,8 +134,17 @@ instance ( Compile dom dom
     compileExprSym (C' SetIx) info args m = error "Array ExprSym1"
     compileExprSym (C' SetLength) info args m = error "Array ExprSym2"
     compileExprSym (C' Append) info args m = error "Array ExprSym3"
-    compileExprSym (C' Parallel) info args m = error "Array ExprSym4"
     compileExprSym (C' Sequential) info args m = error "Array ExprSym5"
+
+    compileExprSym (C' Parallel) info args@(len :* (lam :$ ixf) :* Nil) m      
+        | Just (SubConstr2 (Lambda v)) <- prjLambda lam 
+        =  let ta  = argType $ infoType $ getInfo lam
+               sa  = fst $ infoSize $ getInfo lam
+               typ = compileTypeRep ta sa
+           in error "ExprSym Parallel"
+           -- TODO can't return the name?!
+          -- Alloc typ $ \n c af ->
+          --      compileProgBasic n (Just c) (Just af) (C' Parallel) info args m
 
 
     compileProgBasic name _ af (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m

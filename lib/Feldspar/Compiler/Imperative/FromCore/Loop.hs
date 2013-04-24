@@ -106,7 +106,8 @@ instance ( Compile dom dom
                typ   = compileTypeRep ta sa
                start = head $ compileExpr init m
                end   = head $ compileExpr len m
-          in for start end $ \e ->
+          in loc out (Num 0) 
+         .>> for start end $ \e ->
                loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
 
 --Decl typ $ \intermed -> loc intermed (var out) 

@@ -99,6 +99,7 @@ instance ( Compile dom dom
               sa2  = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
           in k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
+          .>> loc stName (Num 0)
           .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
                 compileProgWithName (stName) Nothing Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
           .>> loc name $ var stName
@@ -146,7 +147,7 @@ instance ( Compile dom dom
                
            in maybe Skip (\f -> f [bound]) af
           -- .>> maybe Skip (\c -> loc c bound) namec 
-          .>> for (Num 0) bound $ \e -> 
+          .>> par (Num 0) bound $ \e -> 
                locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
 
@@ -162,6 +163,7 @@ instance ( Compile dom dom
               typ2 = compileTypeRep ta2 sa2
               bound = head $ compileExpr len m
           in Decl typ2 $ \stName -> loc stName (head $ compileExpr st m)
+         .>> loc stName (Num 0)
          .>> for (Num 0) bound $ \e -> compileProgWithName stName Nothing Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
          .>> locArray name e $ var stName
 

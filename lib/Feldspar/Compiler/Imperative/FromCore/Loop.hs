@@ -79,7 +79,8 @@ instance ( Compile dom dom
                initExpr = head $ compileExpr init m
           in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
          .>> (for initExpr (head $ compileExpr len m) $ \e ->
-               loc im $ head $ compileExpr ixf $ M.insert st im $ M.insert ix (nameFromVar e) m) 
+               --loc im $ head $ compileExpr ixf $ M.insert st im $ M.insert ix (nameFromVar e) m) 
+              compileProgWithName im Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
          .>> locDeref out $ var im
               
 
@@ -104,11 +105,13 @@ instance ( Compile dom dom
         = let  ta    = argType $ infoType $ getInfo lam1
                sa    = fst $ infoSize $ getInfo lam1
                typ   = compileTypeRep ta sa
-               start = head $ compileExpr init m
+               --head $ compileExpr init m
                end   = head $ compileExpr len m
-          in loc out (Num 0) 
-         .>> for start end $ \e ->
-               loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
+          in loc out (Num 0)
+         .>> Alloc typ $ \initName cInit cAf -> compileProgWithName initName (Just cInit) (Just cAf) init m
+         .>> for (var initName) end $ \e ->
+               --loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
+               compileProgWithName out Nothing Nothing ixf $ M.insert st out $ M.insert ix (nameFromVar e) m 
 
 --Decl typ $ \intermed -> loc intermed (var out) 
 --         .>> (for start end $ \e ->

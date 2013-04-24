@@ -83,6 +83,8 @@ type CodeWriter a = Alias -> Program a --M.Map VarId Name -> Proc () --RWS Reade
 
 type Alias = M.Map VarId Name
 
+type AllocFun = Maybe (Dim -> Program ())
+
 ---- | A minimal complete instance has to define either 'compileProgSym' or
 ---- 'compileExprSym'.
 class Compile sub dom
@@ -97,7 +99,8 @@ class Compile sub dom
 
     compileProgBasic
         :: Name
-        -> (Maybe Name)
+        -> Maybe Name
+        -> AllocFun
         -> sub a
         -> Info (DenResult a)
         -> Args (AST (Decor Info dom)) a
@@ -117,8 +120,8 @@ instance (Compile sub1 dom, Compile sub2 dom) =>
     compileProgSym (InjL a) = compileProgSym a
     compileProgSym (InjR a) = compileProgSym a
 
-    compileProgBasic n m (InjL a) = compileProgBasic n m a
-    compileProgBasic n m (InjR a) = compileProgBasic n m a
+    compileProgBasic n m af (InjL a) = compileProgBasic n m af a
+    compileProgBasic n m af (InjR a) = compileProgBasic n m af a
 
     compileExprSym (InjL a) = compileExprSym a
     compileExprSym (InjR a) = compileExprSym a
@@ -177,11 +180,12 @@ compileProgDecorWithName :: Compile dom dom
     -- => Loc Expr ()
     => Name
     -> Maybe Name
+    -> AllocFun
     -> Decor Info dom a
     -> Args (AST (Decor Info dom)) a
     -> CodeWriter ()
-compileProgDecorWithName name cname (Decor info a) args =
-    compileDecor info $ compileProgBasic name cname a info args
+compileProgDecorWithName name cname af (Decor info a) args =
+    compileDecor info $ compileProgBasic name cname af a info args
 
 compileExprDecor :: Compile dom dom
     => Decor Info dom a
@@ -200,8 +204,8 @@ compileExpr = simpleMatch compileExprDecor
 --
 compileProgWithName :: Compile dom dom =>
     --Loc Expr () -> ASTF (Decor Info dom) a -> CodeWriter ()
-    Name -> Maybe Name -> ASTF (Decor Info dom) a -> CodeWriter ()
-compileProgWithName name cname = simpleMatch (compileProgDecorWithName name cname)
+    Name -> Maybe Name -> AllocFun -> ASTF (Decor Info dom) a -> CodeWriter ()
+compileProgWithName name cname af = simpleMatch (compileProgDecorWithName name cname af)
 
 
 

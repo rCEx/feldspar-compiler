@@ -57,7 +57,7 @@ instance Compile dom dom => Compile (Condition :|| Core.Type) dom
             f = compileProg k eLSE m
         in k $ \name -> iff c t f
   
-  compileProgBasic name namec (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) m =
+  compileProgBasic name namec af (C' Condition) _ (cond :* tHEN :* eLSE :* Nil) m =
     let c = head $ compileExpr cond m
         t = head $ compileExpr tHEN m
         f = head $ compileExpr eLSE m

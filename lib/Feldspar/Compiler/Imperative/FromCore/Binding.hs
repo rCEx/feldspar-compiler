@@ -64,7 +64,7 @@ instance Compile (Core.Variable :|| Type) dom
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name $ var $ variable
       where variable = fromMaybe (error "Binding ProgSym: Could not find mapping in Alias for" ++ show v) $ M.lookup v m
 
-    compileProgBasic name cname (C' (Core.Variable v)) info Nil m = loc name $ var v'
+    compileProgBasic name cname af (C' (Core.Variable v)) info Nil m = loc name $ var v'
       where v' = fromMaybe (error "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
 
@@ -75,7 +75,7 @@ instance Compile (CLambda Type) dom
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where
-  compileProgBasic name cname Let _ (a :* (lam :$ body) :* Nil) m
+  compileProgBasic name cname af Let _ (a :* (lam :$ body) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
             compileLetWithName a (getInfo lam) v name (M.insert v name' m)
               where (Index name' _) = var "Binding: ThisNameShouldNotMatter"
@@ -99,7 +99,7 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 
 compileLetWithName :: Compile dom dom
            => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> Name -> CodeWriter () --CodeWriter (Expression ())
-compileLetWithName a info v loc' m = compileProgWithName loc' Nothing a m
+compileLetWithName a info v loc' m = compileProgWithName loc' Nothing Nothing a m
 
 
 
@@ -134,12 +134,15 @@ compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                           typ  = compileTypeRep (infoType info) (infoSize info)
                                       -- Non-pointer output type does not require Alloc
                                       in case typ of
-                                          PIRE.TPointer _ -> Alloc typ [] $ \n c -> compileProgWithName n (Just c) ast m .>> locDeref out (var n)
-                                          _               -> Decl typ $ \n -> compileProgWithName n Nothing ast m .>> locDeref out (var n)
+                                          PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName n (Just c) (Just af) ast m .>> locDeref out (var n)
+                                          _               -> Decl typ $ \n -> compileProgWithName n Nothing Nothing ast m .>> locDeref out (var n)
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
-                                            PIRE.TPointer _ -> Alloc typ [] $ \n c -> compileProgWithName n (Just c) b m .>> 
+                                            --PIRE.TPointer _ -> Alloc typ [] $ \n c -> compileProgWithName n (Just c) b m .>> 
+                                                                --compileBinds k bs ast (M.insert v n m)
+                                            PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName n (Just c) (Just af) b m .>> 
                                                                 compileBinds k bs ast (M.insert v n m)
-                                            _               -> Decl typ $ \n -> compileProgWithName n Nothing b m .>> compileBinds k bs ast (M.insert v n m)
+                                            _               -> Decl typ $ \n -> compileProgWithName n Nothing Nothing b m .>> 
+                                                                compileBinds k bs ast (M.insert v n m)
 

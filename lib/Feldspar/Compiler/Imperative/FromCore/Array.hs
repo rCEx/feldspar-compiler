@@ -100,7 +100,7 @@ instance ( Compile dom dom
               typ2 = compileTypeRep ta2 sa2
           in k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
           .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
-                compileProgWithName (stName) Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
+                compileProgWithName (stName) Nothing Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
           .>> loc name $ var stName
                 
                   
@@ -137,19 +137,20 @@ instance ( Compile dom dom
     compileExprSym (C' Sequential) info args m = error "Array ExprSym5"
 
 
-    compileProgBasic name namec (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
+    compileProgBasic name _ af (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
       | Just (SubConstr2 (Lambda v)) <- prjLambda lam
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
                bound = (head $ compileExpr len m)
                
-           in maybe Skip (\c -> loc c bound) namec 
+           in maybe Skip (\f -> f [bound]) af
+          -- .>> maybe Skip (\c -> loc c bound) namec 
           .>> for (Num 0) bound $ \e -> 
                locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
 
 
-    compileProgBasic name namec (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
+    compileProgBasic name _ _ (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
         , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
@@ -161,12 +162,8 @@ instance ( Compile dom dom
               typ2 = compileTypeRep ta2 sa2
               bound = head $ compileExpr len m
           in Decl typ2 $ \stName -> loc stName (head $ compileExpr st m)
-         .>> for (Num 0) bound $ \e -> compileProgWithName stName Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
+         .>> for (Num 0) bound $ \e -> compileProgWithName stName Nothing Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
          .>> locArray name e $ var stName
-         -- k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
-         -- .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
-         --       compileProgWithName (stName) Nothing step (M.insert v stName (M.insert s (nameFromVar e) m)))
-         -- .>> loc name $ var stName
 
 --    compileProgBasic name (C' setLength) = error "getLength basic"
 --    compileProgBasic name (C' GetIx) = error "getLength basic"

@@ -2,6 +2,7 @@ import qualified Prelude as P
 
 import Feldspar
 import Feldspar.Vector
+import ParScan
 
 import Feldspar.Compiler
 import Feldspar.Compiler.Imperative.FromCore
@@ -23,6 +24,10 @@ dotProd xs ys = sum $ zipWith (*) xs ys
 testFold :: Vector1 Index -> Vector1 Index -> Data Index
 testFold xs ys = fold (+) 0 $ xs'
   where xs' = force $ zipWith (*) xs ys
+
+
+vecMul :: Vector1 Index -> Vector1 Index -> Vector1 Index
+vecMul = zipWith (*)
 
 testScan :: Vector1 Index -> Vector1 Index
 testScan xs = scan (+) 0 xs

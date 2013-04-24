@@ -95,9 +95,9 @@ import Debug.Trace
 
 instance Compile FeldDom FeldDom
   where
-    compileProgSym (C' a)     = compileProgSym a--traceShow ("TRACE on ProgSym: " ++ show a) compileProgSym a 
-    compileProgBasic n m (C' a) = compileProgBasic n m a--traceShow ("TRACE on ProgBasic: " ++ show a) compileProgBasic n a 
-    compileExprSym (C' a)     = compileExprSym a --traceShow ("TRACE on ExprSym: " ++ show a) compileExprSym a
+    compileProgSym (C' a)          = compileProgSym a--traceShow ("TRACE on ProgSym: " ++ show a) compileProgSym a 
+    compileProgBasic n m af (C' a) = compileProgBasic n m af a--traceShow ("TRACE on ProgBasic: " ++ show a) compileProgBasic n a 
+    compileExprSym (C' a)          = compileExprSym a --traceShow ("TRACE on ExprSym: " ++ show a) compileExprSym a
 
 instance Compile Empty dom
   where

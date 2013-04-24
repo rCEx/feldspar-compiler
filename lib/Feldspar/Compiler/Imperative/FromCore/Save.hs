@@ -48,7 +48,7 @@ import Expr
 instance Compile dom dom => Compile (Save :|| Type) dom
   where
     compileProgSym (C' Save) _ k (a :* Nil)  m = error "Save" -- compileProg loc a
-    compileProgBasic name namec (C' Save) info (a :* Nil) m = compileProgWithName name namec a m
+    compileProgBasic name namec af (C' Save) info (a :* Nil) m = compileProgWithName name namec af a m
 
     compileExprSym = error "Save undefined for ExprSym"
 

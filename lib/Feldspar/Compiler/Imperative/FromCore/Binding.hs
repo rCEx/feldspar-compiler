@@ -139,8 +139,6 @@ compileBinds k [] ast m = k $ \out -> let info = getInfo ast
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
-                                            --PIRE.TPointer _ -> Alloc typ [] $ \n c -> compileProgWithName n (Just c) b m .>> 
-                                                                --compileBinds k bs ast (M.insert v n m)
                                             PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName n (Just c) (Just af) b m .>> 
                                                                 compileBinds k bs ast (M.insert v n m)
                                             _               -> Decl typ $ \n -> compileProgWithName n Nothing Nothing b m .>> 

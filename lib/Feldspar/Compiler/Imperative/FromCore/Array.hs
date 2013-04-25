@@ -156,13 +156,11 @@ instance ( Compile dom dom
                bound = (head $ compileExpr len m)
                
            in maybe Skip (\f -> f [bound]) af
-          -- .>> maybe Skip (\c -> loc c bound) namec 
           .>> for (Num 0) bound $ \e -> 
-               --locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
                compileProgWithName name Nothing Nothing ixf (M.insert v (nameFromVar e) m)
 
 
-    compileProgBasic name _ _ (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
+    compileProgBasic name namec af (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
         , (bs1, (lam2 :$ step)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda s)) <- prjLambda lam2
@@ -173,7 +171,8 @@ instance ( Compile dom dom
               sa2  = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
               bound = head $ compileExpr len m
-          in Decl typ2 $ \stName -> compileProgWithName stName Nothing Nothing st m--loc stName (head $ compileExpr st m)
+          in maybe Skip (\f -> f [bound]) af
+         .>> Decl typ2 $ \stName -> compileProgWithName stName Nothing Nothing st m
          .>> loc stName (Num 0)
          .>> for (Num 0) bound $ \e -> compileProgWithName stName Nothing Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
          .>> locArray name e $ var stName

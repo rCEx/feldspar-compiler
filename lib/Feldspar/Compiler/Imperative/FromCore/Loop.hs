@@ -58,6 +58,7 @@ import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
 
 import Expr
 import Program
+import qualified Types as PIRE
 
 instance ( Compile dom dom
          , Project (CLambda Type) dom
@@ -108,10 +109,12 @@ instance ( Compile dom dom
                --head $ compileExpr init m
                end   = head $ compileExpr len m
           in loc out (Num 0)
-         .>> Alloc typ $ \initName cInit cAf -> compileProgWithName initName (Just cInit) (Just cAf) init m
-         .>> for (var initName) end $ \e ->
-               --loc out $ head $ compileExpr ixf $ M.insert st out $ M.insert ix (nameFromVar e) m
-               compileProgWithName out Nothing Nothing ixf $ M.insert st out $ M.insert ix (nameFromVar e) m 
+         .>> case typ of PIRE.TPointer _ -> Alloc typ $ \initName cInit cAf -> compileProgWithName initName (Just cInit) (Just cAf) init m
+                                        .>> for (var initName) end $ \e -> 
+                                              compileProgWithName out Nothing Nothing ixf $ M.insert st out $ M.insert ix (nameFromVar e) m 
+                         _               -> Decl typ $ \initName -> compileProgWithName initName Nothing Nothing init m
+                                             .>> for (var initName) end $ \e ->
+                                                     compileProgWithName out Nothing Nothing ixf $ M.insert st out $ M.insert ix (nameFromVar e) m 
 
 --Decl typ $ \intermed -> loc intermed (var out) 
 --         .>> (for start end $ \e ->

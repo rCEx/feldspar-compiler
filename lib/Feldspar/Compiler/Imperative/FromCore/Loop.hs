@@ -112,10 +112,10 @@ instance ( Compile dom dom
           in maybe Skip (\f -> f [end]) af
          .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
                                         .>> for (Num 0) end $ \e -> 
-                                              compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
-                          _               -> Decl typ2 $ \initName -> compileProgWithName (initName, loc initName) Nothing Nothing init m
-                                             .>> for (var initName) end $ \e -> 
-                                                     compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf $ M.insert st (fst out) $ M.insert ix (nameFromVar e) m 
+                                              compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
+                          _               -> compileProgWithName out Nothing Nothing init m
+                                             .>> for (Num 0) end $ \e -> 
+                                                     compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf $ M.insert st (fst out) $ M.insert ix (nameFromVar e) m 
 
     compileProgBasic _ _ _ _ _ _ _= error "Loop  basic"
 

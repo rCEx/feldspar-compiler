@@ -86,7 +86,6 @@ instance ( Compile dom dom
                sa  = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
            in k $ \name -> par (Num 0) (head $ compileExpr len m) $ \e ->
-                    --locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
                     compileProgWithName name Nothing Nothing ixf (M.insert v (nameFromVar e) m)
     
     compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
@@ -143,9 +142,8 @@ instance ( Compile dom dom
                sa  = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
            in error "ExprSym Parallel"
-           -- TODO can't return the name?!
-          -- Alloc typ $ \n c af ->
-          --      compileProgBasic n (Just c) (Just af) (C' Parallel) info args m
+           -- TODO can't return the name?! Call this via compileProgWithName instead of compileExpr
+
 
 
     compileProgBasic name _ af (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
@@ -154,7 +152,6 @@ instance ( Compile dom dom
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
                bound = (head $ compileExpr len m)
-               
            in maybe Skip (\f -> f [bound]) af
           .>> for (Num 0) bound $ \e -> 
                compileProgWithName name Nothing Nothing ixf (M.insert v (nameFromVar e) m)

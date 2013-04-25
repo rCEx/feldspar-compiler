@@ -106,7 +106,6 @@ instance ( Compile dom dom
         = let  ta    = argType $ infoType $ getInfo lam1
                sa    = fst $ infoSize $ getInfo lam1
                typ   = compileTypeRep ta sa
-               --head $ compileExpr init m
                end   = head $ compileExpr len m
           in loc out (Num 0)
          .>> case typ of PIRE.TPointer _ -> Alloc typ $ \initName cInit cAf -> compileProgWithName initName (Just cInit) (Just cAf) init m
@@ -115,11 +114,6 @@ instance ( Compile dom dom
                          _               -> Decl typ $ \initName -> compileProgWithName initName Nothing Nothing init m
                                              .>> for (var initName) end $ \e ->
                                                      compileProgWithName out Nothing Nothing ixf $ M.insert st out $ M.insert ix (nameFromVar e) m 
-
---Decl typ $ \intermed -> loc intermed (var out) 
---         .>> (for start end $ \e ->
---               loc intermed $ head $ compileExpr ixf $ M.insert st intermed $ M.insert ix (nameFromVar e) m) 
---         .>> loc out $ var intermed
 
     compileProgBasic _ _ _ _ _ _ _= error "Loop  basic"
 

@@ -82,6 +82,8 @@ toInfix s es | s == "(*)" , [a,b] <- es = a .* b
              | s == "(>=)" , [a,b] <- es = BinOp $ Expr.GTE a b
              | s == "(==)" , [a,b] <- es = BinOp $ Expr.EQ a b
              | s == "(!=)" , [a,b] <- es = BinOp $ Expr.NEQ a b
+             | s == "shiftL" , [a,b] <- es = BinOp $ Expr.ShiftL a b
+             | s == "shiftR" , [a,b] <- es = BinOp $ Expr.ShiftR a b
              | otherwise  = Call (var s) es
 
 -- | Convenient implementation of 'compileExprSym' for primitive functions

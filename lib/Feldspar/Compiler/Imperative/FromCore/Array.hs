@@ -157,7 +157,7 @@ instance ( Compile dom dom
                
            in maybe Skip (\f -> f [bound]) af
           -- .>> maybe Skip (\c -> loc c bound) namec 
-          .>> par (Num 0) bound $ \e -> 
+          .>> for (Num 0) bound $ \e -> 
                --locArray name e (head $ compileExpr ixf (M.insert v (nameFromVar e) m))
                compileProgWithName name Nothing Nothing ixf (M.insert v (nameFromVar e) m)
 

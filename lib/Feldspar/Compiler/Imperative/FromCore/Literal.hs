@@ -67,9 +67,9 @@ instance Compile (Literal :|| Core.Type) dom
       k $ \name -> foldl1 (.>>) $ locs name
         where 
           locs name = zipWith ($) (map (locArray name . Num) [0..]) literals
-          literals  = literal (infoType info) (infoSize info) a 
+          literals  = literal (infoType info) (infoSize info) a
     
-    compileProgBasic name namec af (C' (Literal a)) info Nil m = loc name $ head $ literal (infoType info) (infoSize info) a
+    compileProgBasic name namec af (C' (Literal a)) info Nil m = snd name $ head $ literal (infoType info) (infoSize info) a
     
 
 literal :: TypeRep a -> Core.Size a -> a -> [Expr]

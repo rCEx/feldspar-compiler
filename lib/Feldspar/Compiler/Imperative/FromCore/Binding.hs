@@ -128,14 +128,6 @@ compileLets ((v, ASTB b):bs) f m = let info = getInfo b
                                                             compileProgWithName (n, loc n) Nothing Nothing b m 
                                                         .>> compileLets bs f (M.insert v n m)
 
-compileBind :: Compile dom dom
-  => (VarId, ASTB (Decor Info dom) Type) -> CodeWriter ()
-compileBind = error "compileBind"
---     = do
---         let info = getInfo e
---             var = mkVar (compileTypeRep (infoType info) (infoSize info)) v
---         declare var
---         compileProg var e
 
 compileBinds :: Compile dom dom
   => ((Name -> Program ()) -> Program ()) 

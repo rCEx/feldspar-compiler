@@ -57,7 +57,7 @@ import Feldspar.Compiler.Imperative.Frontend
 --                                                    Block(..), Size(..),
 --                                                    Signedness(..), typeof)
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
-import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind)
+import Feldspar.Compiler.Imperative.FromCore.Binding
 
 import Program
 import Expr

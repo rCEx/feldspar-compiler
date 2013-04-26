@@ -63,7 +63,7 @@ import Feldspar.Range (upperBound)
 --import Feldspar.Compiler.Imperative.Frontend
 import Feldspar.Compiler.Imperative.FromCore.Interpretation
 import Feldspar.Compiler.Imperative.FromCore.Array ()
-import Feldspar.Compiler.Imperative.FromCore.Binding (compileBind, compileBinds)
+import Feldspar.Compiler.Imperative.FromCore.Binding
 import Feldspar.Compiler.Imperative.FromCore.Condition ()
 import Feldspar.Compiler.Imperative.FromCore.ConditionM ()
 import Feldspar.Compiler.Imperative.FromCore.Error ()

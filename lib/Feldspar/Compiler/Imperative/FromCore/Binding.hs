@@ -137,8 +137,6 @@ compileBind = error "compileBind"
 --         declare var
 --         compileProg var e
 
-
--- TODO size on alloc.
 compileBinds :: Compile dom dom
   => ((Name -> Program ()) -> Program ()) 
   -> [(VarId, ASTB (Decor Info dom) Type)]
@@ -148,13 +146,19 @@ compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                           typ  = compileTypeRep (infoType info) (infoSize info)
                                       -- Non-pointer output type does not require Alloc
                                       in case typ of
-                                          PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName (n, loc n) (Just c) (Just af) ast m .>> locDeref out (var n)
-                                          _               -> Decl typ $ \n -> compileProgWithName (n, loc n) Nothing Nothing ast m .>> locDeref out (var n)
+                                          PIRE.TPointer _ -> Alloc typ $ \n c af -> 
+                                                              compileProgWithName (n, loc n) (Just c) (Just af) ast m 
+                                                          .>> locDeref out (var n)
+                                          _               -> Decl typ $ \n -> 
+                                                              compileProgWithName (n, loc n) Nothing Nothing ast m 
+                                                          .>> locDeref out (var n)
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
-                                            PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName (n, loc n) (Just c) (Just af) b m .>> 
-                                                                compileBinds k bs ast (M.insert v n m)
-                                            _               -> Decl typ $ \n -> compileProgWithName (n, loc n) Nothing Nothing b m .>> 
-                                                                compileBinds k bs ast (M.insert v n m)
+                                            PIRE.TPointer _ -> Alloc typ $ \n c af -> 
+                                                                compileProgWithName (n, loc n) (Just c) (Just af) b m 
+                                                            .>> compileBinds k bs ast (M.insert v n m)
+                                            _               -> Decl typ $ \n -> 
+                                                                  compileProgWithName (n, loc n) Nothing Nothing b m 
+                                                              .>> compileBinds k bs ast (M.insert v n m)
 

@@ -112,7 +112,19 @@ compileLetWithName a info v name m = compileProgWithName name Nothing Nothing a 
 --        declare var
 --        compileProg var a
 --        return var
---
+
+compileLets :: Compile dom dom
+  => [(VarId, ASTB (Decor Info dom) Type)]
+  -> (Alias -> Program ())
+  -> CodeWriter ()
+compileLets [] f m               = f m
+compileLets ((v, ASTB b):bs) f m = let info = getInfo b
+                                       typ  = compileTypeRep (infoType info) (infoSize info)
+                                   in case typ of
+                                       PIRE.TPointer _ -> Alloc typ $ \n c af -> compileProgWithName (n, loc n) (Just c) (Just af) b m .>> 
+                                                            compileLets bs f (M.insert v n m)
+                                       _               -> Decl typ $ \n -> compileProgWithName (n, loc n) Nothing Nothing b m .>> 
+                                                            compileLets bs f (M.insert v n m)
 
 compileBind :: Compile dom dom
   => (VarId, ASTB (Decor Info dom) Type) -> CodeWriter ()

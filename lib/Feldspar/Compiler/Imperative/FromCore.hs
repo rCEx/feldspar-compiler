@@ -145,8 +145,7 @@ compileProgTop bs e@(lt :$ _ :$ _) m
   | Just Let <- prj lt
   , (bs', body) <- collectLetBinders e
   = compileProgTop (reverse bs' ++ bs) body m
---error "compielProgTop: letBinding without lambda NYI." 
---compileProgTop (reverse bs' ++ bs) body
+
 
 
 --compileProgTop opt funname bs a = do

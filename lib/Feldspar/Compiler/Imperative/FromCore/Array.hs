@@ -154,7 +154,8 @@ instance ( Compile dom dom
                bound = (head $ compileExpr len m)
            in maybe Skip (\f -> f [bound]) af
           .>> for (Num 0) bound $ \e -> 
-               compileProgWithName (fst name, locArray (fst name) e) Nothing Nothing ixf (M.insert v (nameFromVar e) m)
+               compileProgWithName (fst name, locArray (fst name) e) Nothing Nothing ixf 
+                  (M.insert v (nameFromVar e) m)
 
 
     compileProgBasic name namec af (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m
@@ -176,7 +177,7 @@ instance ( Compile dom dom
          .>> snd name $ var stName
 
     compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
-    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = snd name $ head $ compileExpr a m
+    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = error "getLength"--snd name $ head $ compileExpr a m
     compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
     compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
     compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"

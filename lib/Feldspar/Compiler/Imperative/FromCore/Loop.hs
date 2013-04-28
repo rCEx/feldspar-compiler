@@ -74,14 +74,14 @@ instance ( Compile dom dom
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = let  ta  = argType $ infoType $ getInfo lam1
-               sa  = fst $ infoSize $ getInfo lam1
-               typ = compileTypeRep ta sa
-               initExpr = head $ compileExpr init m
-          in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
-         .>> (for initExpr (head $ compileExpr len m) $ \e ->
-              compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
-         .>> locDeref out $ var im
+        = error "ForLoop Sym"-- let  ta  = argType $ infoType $ getInfo lam1
+         --       sa  = fst $ infoSize $ getInfo lam1
+         --       typ = compileTypeRep ta sa
+         --       initExpr = head $ compileExpr init m
+         --  in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
+         -- .>> (for initExpr (head $ compileExpr len m) $ \e ->
+         --      compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
+         -- .>> locDeref out $ var im
 
     compileProgBasic out outc af (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1

@@ -63,7 +63,7 @@ instance Compile (Literal :|| Core.Type) dom
   where
     compileExprSym (C' (Literal a)) info Nil m = literal (infoType info) (infoSize info) a  
     
-    compileProgSym x@(C' (Literal a)) info k Nil m =
+    compileProgSym (C' (Literal a)) info k Nil m =
       k $ \name -> foldl1 (.>>) $ locs name
         where 
           locs name = zipWith ($) (map (locArray name . Num) [0..]) literals
@@ -80,6 +80,6 @@ literal _ _ _ = error "literal undefined."
 
 literalConst :: TypeRep a -> Core.Size a -> a -> [Expr]
 literalConst t@IntType{}     sz a = [Num $ fromInteger $ toInteger a]
-literalConst x@(ArrayType t) sz a = map (head . (literalConst t (defaultSize t))) a 
+literalConst (ArrayType t) sz a = map (head . (literalConst t (defaultSize t))) a 
 
 

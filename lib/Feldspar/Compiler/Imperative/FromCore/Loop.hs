@@ -74,39 +74,38 @@ instance ( Compile dom dom
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = error "ForLoop Sym"-- let  ta  = argType $ infoType $ getInfo lam1
-         --       sa  = fst $ infoSize $ getInfo lam1
-         --       typ = compileTypeRep ta sa
-         --       initExpr = head $ compileExpr init m
-         --  in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
-         -- .>> (for initExpr (head $ compileExpr len m) $ \e ->
-         --      compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
-         -- .>> locDeref out $ var im
+        = let  ta  = argType $ infoType $ getInfo lam1
+               sa  = fst $ infoSize $ getInfo lam1
+               typ = compileTypeRep ta sa
+               initExpr = head $ compileExpr init m
+          in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
+         .>> (for initExpr (head $ compileExpr len m) $ \e ->
+              compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
+         .>> locDeref out $ var im
 
     compileProgBasic out outc af (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1
         , (bs1, (lam2 :$ ixf)) <- collectLetBinders lt1
         , Just (SubConstr2 (Lambda st)) <- prjLambda lam2
-        = error "ForLOOP"
---        let  ta    = argType $ infoType $ getInfo lam1
---               sa    = fst $ infoSize $ getInfo lam1
---               typ   = compileTypeRep ta sa
---               ta2   = argType $ infoType $ getInfo lam2
---               sa2   = fst $ infoSize $ getInfo lam2
---               typ2  = compileTypeRep ta2 sa2
---               end   = head $ compileExpr len m
---          in maybe Skip (\f -> f [end]) af
---         .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
---                                         .>> for (Num 0) end $ \e ->
---                                              compileLets bs1 
---                                                          (compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf) 
---                                                          (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
---                          _               -> compileProgWithName out Nothing Nothing init m
---                                          .>> for (Num 0) end $ \e -> 
---                                               compileLets bs1 
---                                                           (compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf)
---                                                           (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
---
+        = let  ta    = argType $ infoType $ getInfo lam1
+               sa    = fst $ infoSize $ getInfo lam1
+               typ   = compileTypeRep ta sa
+               ta2   = argType $ infoType $ getInfo lam2
+               sa2   = fst $ infoSize $ getInfo lam2
+               typ2  = compileTypeRep ta2 sa2
+               end   = head $ compileExpr len m
+          in maybe Skip (\f -> f [end]) af
+         .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
+                                         .>> for (Num 0) end $ \e ->
+                                              compileLets bs1 
+                                                          (compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf) 
+                                                          (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
+                          _               -> compileProgWithName out Nothing Nothing init m
+                                          .>> for (Num 0) end $ \e -> 
+                                               compileLets bs1 
+                                                           (compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf)
+                                                           (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
+
     compileProgBasic _ _ _ _ _ _ _ = error "Loop basic"
 
 --

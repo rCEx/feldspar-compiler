@@ -146,7 +146,7 @@ instance ( Compile dom dom
 
 
 
-    compileProgBasic name _ af (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
+    compileProgBasic name namec af (C' Parallel) info (len :* (lam :$ ixf) :* Nil) m
       | Just (SubConstr2 (Lambda v)) <- prjLambda lam
         =  let ta = argType $ infoType $ getInfo lam
                sa = fst $ infoSize $ getInfo lam

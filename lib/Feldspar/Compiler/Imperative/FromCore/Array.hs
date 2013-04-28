@@ -177,10 +177,10 @@ instance ( Compile dom dom
 
     compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
     compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = snd name $ head $ compileExpr a m
-    compileProgBasic _ _ _ (C' GetIx) _ (arr :* i :* Nil) m       = error "GetIx basic2"
-    compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic3"
-    compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic4"
-    compileProgBasic _ _ _ (C' Append) _ (a :* b :* Nil) m = error "Append basic4"
+    compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
+    compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
+    compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"
+    compileProgBasic _ _ _ (C' Append) _ (a :* b :* Nil) m = error "Append basic2"
     compileProgBasic _ _ _ _ _ _ _ = error $ "compileProgBasic undefined for Array"
 
 

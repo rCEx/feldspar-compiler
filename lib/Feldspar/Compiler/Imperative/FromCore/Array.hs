@@ -171,15 +171,17 @@ instance ( Compile dom dom
           in maybe Skip (\f -> f [bound]) af
          .>> Decl typ2 $ \stName -> compileProgWithName (stName, loc stName) Nothing Nothing st m
          .>> loc stName (Num 0)
-         .>> for (Num 0) bound $ \e -> compileProgWithName (stName, locArray stName e) Nothing Nothing step (M.insert v (nameFromVar e) (M.insert s stName m))
+         .>> for (Num 0) bound $ \e -> compileProgWithName (stName, locArray stName e) Nothing Nothing step 
+                                        (M.insert v (nameFromVar e) (M.insert s stName m))
          .>> snd name $ var stName
 
---    compileProgBasic name (C' setLength) = error "getLength basic"
---    compileProgBasic name (C' GetIx) = error "getLength basic"
---    compileProgBasic name (C' SetIx) = error "getLength basic"
---    compileProgBasic name (C' Append) = error "getLength basic"
---    compileProgBasic name (C' Sequential) = error "getLength basic"                            
---    compileProgBasic name (C' Parallel) = error "getLength basic"                            
+    compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
+    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = snd name $ head $ compileExpr a m
+    compileProgBasic _ _ _ (C' GetIx) _ (arr :* i :* Nil) m       = error "GetIx basic2"
+    compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic3"
+    compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic4"
+    compileProgBasic _ _ _ (C' Append) _ (a :* b :* Nil) m = error "Append basic4"
+    compileProgBasic _ _ _ _ _ _ _ = error $ "compileProgBasic undefined for Array"
 
 
                --len' = mkLength len (infoType $ getInfo len) sa m

@@ -98,12 +98,12 @@ instance ( Compile dom dom
          .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
                                          .>> for (Num 0) bound $ \e ->
                                               compileLets bs1 
-                                                          (compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf) 
+                                                          (compileProgWithName (fst out, snd out) Nothing Nothing ixf) 
                                                           (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
                           _               -> compileProgWithName out Nothing Nothing init m
                                           .>> for (Num 0) bound $ \e -> 
                                                compileLets bs1 
-                                                           (compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf)
+                                                           (compileProgWithName (fst out, snd out) Nothing Nothing ixf)
                                                            (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
 
     compileProgBasic _ _ _ _ _ _ _ = error "Loop basic"

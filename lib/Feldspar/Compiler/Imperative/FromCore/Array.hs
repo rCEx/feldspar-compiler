@@ -178,8 +178,11 @@ instance ( Compile dom dom
          .>> snd name $ var stName
 
     compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
-    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = error "getLength basic"--snd name $ head $ compileExpr a m
-    compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
+    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in snd name $  Index (n ++ "c") is
+          --snd name $ head $ compileExpr a m
+    compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = 
+      maybe Skip (\f -> f [Num 1]) af .>> -- TODO causes memory leak
+      snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
     compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
     compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"
     compileProgBasic _ _ _ (C' Append) _ (a :* b :* Nil) m = error "Append basic2"

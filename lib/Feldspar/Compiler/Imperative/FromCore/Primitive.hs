@@ -73,12 +73,12 @@ instance Compile dom dom => Compile Semantics dom
 
 -- TODO doesn't cover all cases
 toInfix :: String -> [Expr] -> Expr
-toInfix s es | s == "(*)" , [a,b] <- es = a .* b
-             | s == "(+)" , [a,b] <- es = a .+ b
-             | s == "(-)" , [a,b] <- es = a .- b
-             | s == "(<)" , [a,b] <- es = BinOp $ Expr.LT a b
+toInfix s es | s == "(*)"  , [a,b] <- es = a .* b
+             | s == "(+)"  , [a,b] <- es = a .+ b
+             | s == "(-)"  , [a,b] <- es = a .- b
+             | s == "(<)"  , [a,b] <- es = BinOp $ Expr.LT a b
              | s == "(<=)" , [a,b] <- es = BinOp $ Expr.LTE a b
-             | s == "(>)" , [a,b] <- es = BinOp $ Expr.GT a b
+             | s == "(>)"  , [a,b] <- es = BinOp $ Expr.GT a b
              | s == "(>=)" , [a,b] <- es = BinOp $ Expr.GTE a b
              | s == "(==)" , [a,b] <- es = BinOp $ Expr.EQ a b
              | s == "(!=)" , [a,b] <- es = BinOp $ Expr.NEQ a b

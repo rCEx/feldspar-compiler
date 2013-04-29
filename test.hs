@@ -35,8 +35,8 @@ testScan = scan (+) 0
 
 
 matVec :: Vector2 Index -> Vector1 Index -> Vector1 Index
-matVec xxs ys = --map (dotProd ys) xxs
-  indexed 1 (const $ sum $ zipWith (*) xs ys)
-  where xs = head xxs
+matVec xxs ys = map (dotProd ys) xxs
+  --indexed 1 (const $ sum $ zipWith (*) xs ys)
+  --where xs = head xxs
 
 

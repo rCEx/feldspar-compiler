@@ -80,7 +80,7 @@ instance ( Compile dom dom
                initExpr = head $ compileExpr init m
           in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
          .>> (for initExpr (head $ compileExpr len m) $ \e ->
-              compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st (var im) $ M.insert ix e m))
+              compileProgWithName (var im, loc im) Nothing Nothing ixf (M.insert st (var im) $ M.insert ix e m))
          .>> locDeref out $ var im
 
     compileProgBasic out outc af (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m
@@ -94,17 +94,25 @@ instance ( Compile dom dom
                sa2   = fst $ infoSize $ getInfo lam2
                typ2  = compileTypeRep ta2 sa2
                bound   = head $ compileExpr len m
+               ta3   = infoType $ getInfo ixf
+               sa3   = infoSize $ getInfo ixf
+               typ3 = compileTypeRep ta3 sa3
           in maybe Skip (\f -> f [bound]) af
-         .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
-                                         .>> for (Num 0) bound $ \e ->
-                                              compileLets bs1 
-                                                          (compileProgWithName (fst out, snd out) Nothing Nothing ixf) 
-                                                          (M.insert st (Index (fst out) [e]) $ M.insert ix e m)
-                          _               -> compileProgWithName out Nothing Nothing init m
-                                          .>> for (Num 0) bound $ \e -> 
+         .>> case typ3 of -- PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
+                          --                .>> for (Num 0) bound $ \e ->
+                          --                     compileLets bs1 
+                          --                                 (compileProgWithName (fst out, snd out) Nothing Nothing ixf) 
+                          --                                 (M.insert st (fst out) $ M.insert ix e m)
+                          _               -> compileProgWithName out Nothing Nothing init m .>>
+                                             Decl typ3 $ \temp -> let (Assign _ xs _) = snd out (undefined)
+                                                                      (Index n _)     = fst out
+                                                                  in 
+                                               loc temp (Index n xs) .>>
+                                               for (Num 0) bound (\e -> 
                                                compileLets bs1 
-                                                           (compileProgWithName (fst out, snd out) Nothing Nothing ixf)
-                                                           (M.insert st (var $ fst out) $ M.insert ix e m)
+                                                           (compileProgWithName (var temp, loc temp) Nothing Nothing ixf)
+                                                           (M.insert st (var temp) $ M.insert ix e m))
+                                               .>> snd out (var temp)
 
     compileProgBasic _ _ _ _ _ _ _ = error "Loop basic"
 

@@ -86,7 +86,7 @@ instance ( Compile dom dom
                sa  = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
            in k $ \name -> par (Num 0) (head $ compileExpr len m) $ \e ->
-                    compileProgWithName (name, locArray name e) Nothing Nothing ixf (M.insert v e m)
+                    compileProgWithName (var name, locArray name e) Nothing Nothing ixf (M.insert v e m)
     
     compileProgSym (C' Sequential) _ k (len :* st :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam1
@@ -101,7 +101,7 @@ instance ( Compile dom dom
           in k $ \name -> Decl typ2 $ \stName -> loc stName (head $ compileExpr st m) 
           .>> loc stName (Num 0)
           .>> (for (Num 0) (head $ compileExpr len m) $ \e -> 
-                compileProgWithName (stName, locArray stName e) Nothing Nothing step (M.insert v (var stName) (M.insert s e m)))
+                compileProgWithName (var stName, locArray stName e) Nothing Nothing step (M.insert v (var stName) (M.insert s e m)))
           .>> loc name $ var stName
                 
                   
@@ -153,9 +153,10 @@ instance ( Compile dom dom
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
                bound = (head $ compileExpr len m)
+               (Index name' _) = fst name
            in maybe Skip (\f -> f [bound]) af
           .>> for (Num 0) bound $ \e -> 
-               compileProgWithName (fst name, locArray (fst name) e) Nothing Nothing ixf 
+               compileProgWithName (fst name, locArray ( name') e) Nothing Nothing ixf 
                   (M.insert v e m)
 
 
@@ -171,9 +172,9 @@ instance ( Compile dom dom
               typ2 = compileTypeRep ta2 sa2
               bound = head $ compileExpr len m
           in maybe Skip (\f -> f [bound]) af
-         .>> Decl typ2 $ \stName -> compileProgWithName (stName, loc stName) Nothing Nothing st m
+         .>> Decl typ2 $ \stName -> compileProgWithName (var stName, loc stName) Nothing Nothing st m
          .>> loc stName (Num 0)
-         .>> for (Num 0) bound $ \e -> compileProgWithName (stName, locArray stName e) Nothing Nothing step 
+         .>> for (Num 0) bound $ \e -> compileProgWithName (var stName, locArray stName e) Nothing Nothing step 
                                         (M.insert v e (M.insert s (var stName) m))
          .>> snd name $ var stName
 
@@ -181,7 +182,7 @@ instance ( Compile dom dom
     compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in snd name $  Index (n ++ "c") is
           --snd name $ head $ compileExpr a m
     compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = 
-      maybe Skip (\f -> f [Num 1]) af .>> -- TODO causes memory leak
+      maybe Skip (\f -> f $ [Index ((nameFromVar $ head $ compileExpr arr m) ++ "c") []]) af .>> -- TODO causes memory leak
       snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
     compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
     compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"

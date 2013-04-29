@@ -98,7 +98,7 @@ class Compile sub dom
     compileProgSym = compileExprLoc
 
     compileProgBasic
-        :: (Name, Loc Expr ())
+        :: (Expr, Loc Expr ())
         -> Maybe Name
         -> AllocFun
         -> sub a
@@ -178,7 +178,7 @@ compileProgDecor k (Decor info a) args =
 
 compileProgDecorWithName :: Compile dom dom
     -- => Loc Expr ()
-    => (Name, Loc Expr ())
+    => (Expr, Loc Expr ())
     -> Maybe Name
     -> AllocFun
     -> Decor Info dom a
@@ -204,7 +204,7 @@ compileExpr = simpleMatch compileExprDecor
 --
 compileProgWithName :: Compile dom dom =>
     --Loc Expr () -> ASTF (Decor Info dom) a -> CodeWriter ()
-    (Name, Loc Expr ()) -> Maybe Name -> AllocFun -> ASTF (Decor Info dom) a -> CodeWriter ()
+    (Expr, Loc Expr ()) -> Maybe Name -> AllocFun -> ASTF (Decor Info dom) a -> CodeWriter ()
 compileProgWithName name cname af = simpleMatch (compileProgDecorWithName name cname af)
 
 

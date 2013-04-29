@@ -81,13 +81,13 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
                 typ  = compileTypeRep (infoType info) (infoSize info)
             in case typ of
                  PIRE.TPointer _ -> Alloc typ $ \n c af' -> 
-                                      compileProgWithName (n, loc n) (Just c) (Just af') a (M.insert v (var n) m) .>>
+                                      compileProgWithName (var n, loc n) (Just c) (Just af') a (M.insert v (var n) m) .>>
                                       compileProgWithName name cname af body (M.insert v (var n) m)
                                     --  compileLetWithName a (getInfo lam) v name (M.insert v n m)
                                     --  .>> compileProgWithName name (Just c) (Just af) body (M.insert v n m)
-                -- _               -> Decl typ $ \n ->
-                --                      compileLetWithName a (getInfo lam) v name (M.insert v n m)
-                --                      .>> compileProgWithName name Nothing Nothing body (M.insert v n m)
+                 _               -> Decl typ $ \n ->
+                                      compileProgWithName (var n, loc n) Nothing Nothing a (M.insert v (var n) m) .>>
+                                      compileProgWithName name cname af body (M.insert v (var n) m)
 
 --  compileProgSym Let _ k (a :* (lam :$ body) :* Nil) m
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
@@ -131,10 +131,10 @@ compileLets ((v, ASTB b):bs) f m = let info = getInfo b
                                        typ  = compileTypeRep (infoType info) (infoSize info)
                                    in case typ of
                                        PIRE.TPointer _ -> Alloc typ $ \n c af -> 
-                                                            compileProgWithName (n, loc n) (Just c) (Just af) b m 
+                                                            compileProgWithName (var n, loc n) (Just c) (Just af) b m 
                                                         .>> compileLets bs f (M.insert v (var n) m)
                                        _               -> Decl typ $ \n -> 
-                                                            compileProgWithName (n, loc n) Nothing Nothing b m 
+                                                            compileProgWithName (var n, loc n) Nothing Nothing b m 
                                                         .>> compileLets bs f (M.insert v (var n) m)
 
 
@@ -147,18 +147,18 @@ compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                           typ  = compileTypeRep (infoType info) (infoSize info)
                                       in case typ of
                                           PIRE.TPointer _ -> Alloc typ $ \n c af -> 
-                                                              compileProgWithName (n, loc n) (Just c) (Just af) ast m 
+                                                              compileProgWithName (var n, loc n) (Just c) (Just af) ast m 
                                                           .>> locDeref out (var n)
                                           _               -> Decl typ $ \n -> 
-                                                              compileProgWithName (n, loc n) Nothing Nothing ast m 
+                                                              compileProgWithName (var n, loc n) Nothing Nothing ast m 
                                                           .>> locDeref out (var n)
 compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
                                             PIRE.TPointer _ -> Alloc typ $ \n c af -> 
-                                                                compileProgWithName (n, loc n) (Just c) (Just af) b m 
+                                                                compileProgWithName (var n, loc n) (Just c) (Just af) b m 
                                                             .>> compileBinds k bs ast (M.insert v (var n) m)
                                             _               -> Decl typ $ \n -> 
-                                                                  compileProgWithName (n, loc n) Nothing Nothing b m 
+                                                                  compileProgWithName (var n, loc n) Nothing Nothing b m 
                                                               .>> compileBinds k bs ast (M.insert v (var n) m)
 

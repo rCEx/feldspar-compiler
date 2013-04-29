@@ -80,7 +80,7 @@ instance ( Compile dom dom
                initExpr = head $ compileExpr init m
           in k $ \out -> Decl typ $ \im -> loc im (deref $ var out) 
          .>> (for initExpr (head $ compileExpr len m) $ \e ->
-              compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st im $ M.insert ix (nameFromVar e) m))
+              compileProgWithName (im, loc im) Nothing Nothing ixf (M.insert st (var im) $ M.insert ix e m))
          .>> locDeref out $ var im
 
     compileProgBasic out outc af (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m
@@ -99,12 +99,12 @@ instance ( Compile dom dom
                                          .>> for (Num 0) bound $ \e ->
                                               compileLets bs1 
                                                           (compileProgWithName (fst out, snd out) Nothing Nothing ixf) 
-                                                          (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
+                                                          (M.insert st (Index (fst out) [e]) $ M.insert ix e m)
                           _               -> compileProgWithName out Nothing Nothing init m
                                           .>> for (Num 0) bound $ \e -> 
                                                compileLets bs1 
                                                            (compileProgWithName (fst out, snd out) Nothing Nothing ixf)
-                                                           (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
+                                                           (M.insert st (var $ fst out) $ M.insert ix e m)
 
     compileProgBasic _ _ _ _ _ _ _ = error "Loop basic"
 

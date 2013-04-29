@@ -81,7 +81,7 @@ import Debug.Trace
 -- | Code generation monad
 type CodeWriter a = Alias -> Program a --M.Map VarId Name -> Proc () --RWS Readers () States --(Program ())--RWS Readers Writers StatesA
 
-type Alias = M.Map VarId Name
+type Alias = M.Map VarId Expr
 
 type AllocFun = Maybe (Dim -> Program ())
 

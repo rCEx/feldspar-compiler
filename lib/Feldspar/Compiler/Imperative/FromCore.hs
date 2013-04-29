@@ -121,7 +121,7 @@ compileProgTop bs (lam :$ body) m
     = do let ta  = argType $ infoType $ getInfo lam
              sa  = fst $ infoSize $ getInfo lam
              typ = compileTypeRep ta sa
-         InParam typ $ \name -> compileProgTop bs body (M.insert v name m)
+         InParam typ $ \name -> compileProgTop bs body (M.insert v (var name) m)
 
 compileProgTop bs (lt :$ e :$ (lam :$ body)) m
   | Just (SubConstr2 (Lambda v)) <- prjLambda lam

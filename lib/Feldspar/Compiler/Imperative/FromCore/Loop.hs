@@ -93,15 +93,15 @@ instance ( Compile dom dom
                ta2   = argType $ infoType $ getInfo lam2
                sa2   = fst $ infoSize $ getInfo lam2
                typ2  = compileTypeRep ta2 sa2
-               end   = head $ compileExpr len m
-          in maybe Skip (\f -> f [end]) af
+               bound   = head $ compileExpr len m
+          in maybe Skip (\f -> f [bound]) af
          .>> case typ2 of PIRE.TPointer _ -> compileProgWithName out Nothing Nothing init m
-                                         .>> for (Num 0) end $ \e ->
+                                         .>> for (Num 0) bound $ \e ->
                                               compileLets bs1 
                                                           (compileProgWithName (fst out, locArray (fst out) e) Nothing Nothing ixf) 
                                                           (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)
                           _               -> compileProgWithName out Nothing Nothing init m
-                                          .>> for (Num 0) end $ \e -> 
+                                          .>> for (Num 0) bound $ \e -> 
                                                compileLets bs1 
                                                            (compileProgWithName (fst out, loc $ fst out) Nothing Nothing ixf)
                                                            (M.insert st (fst out) $ M.insert ix (nameFromVar e) m)

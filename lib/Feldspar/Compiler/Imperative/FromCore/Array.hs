@@ -138,10 +138,11 @@ instance ( Compile dom dom
 
     compileExprSym (C' Parallel) info args@(len :* (lam :$ ixf) :* Nil) m      
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam 
-        =  let ta  = argType $ infoType $ getInfo lam
-               sa  = fst $ infoSize $ getInfo lam
-               typ = compileTypeRep ta sa
-           in error "ExprSym Parallel"
+        = error "compileExprSym not implemented for Parallel. Try calling with compileProgWithName."
+       -- let ta  = argType $ infoType $ getInfo lam
+       --        sa  = fst $ infoSize $ getInfo lam
+       --        typ = compileTypeRep ta sa
+       --    in error "ExprSym Parallel"
            -- TODO can't return the name?! Call this via compileProgWithName instead of compileExpr
 
 
@@ -177,7 +178,7 @@ instance ( Compile dom dom
          .>> snd name $ var stName
 
     compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
-    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = error "getLength"--snd name $ head $ compileExpr a m
+    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = error "getLength basic"--snd name $ head $ compileExpr a m
     compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
     compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
     compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"

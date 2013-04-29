@@ -70,16 +70,24 @@ instance Compile (Core.Variable :|| Type) dom
 
 instance Compile (CLambda Type) dom
   where
-    compileProgSym = error "Can only compile top-level Lambda"
+    compileProgSym = error "Can only compile top-level Lambda: ProgSym"
     compileProgBasic = error "Can only compile top-level Lambda: ProgBasic"
 
 instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
   where
   compileProgBasic name cname af Let _ (a :* (lam :$ body) :* Nil) m
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
-            compileLetWithName a (getInfo lam) v name (M.insert v name' m)
-        .>> compileProgWithName name cname af body (M.insert v name' m)
-              where (Index name' _) = var "Binding: ThisNameShouldNotMatter"
+            let info = getInfo a
+                typ  = compileTypeRep (infoType info) (infoSize info)
+            in case typ of
+                 PIRE.TPointer _ -> Alloc typ $ \n c af' -> 
+                                      compileProgWithName (n, loc n) (Just c) (Just af') a (M.insert v n m) .>>
+                                      compileProgWithName name cname af body (M.insert v n m)
+                                    --  compileLetWithName a (getInfo lam) v name (M.insert v n m)
+                                    --  .>> compileProgWithName name (Just c) (Just af) body (M.insert v n m)
+                -- _               -> Decl typ $ \n ->
+                --                      compileLetWithName a (getInfo lam) v name (M.insert v n m)
+                --                      .>> compileProgWithName name Nothing Nothing body (M.insert v n m)
 
 --  compileProgSym Let _ k (a :* (lam :$ body) :* Nil) m
 --        | Just (SubConstr2 (Lambda v)) <- prjLambda lam
@@ -98,9 +106,9 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
 --           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> ((Name -> Program ()) -> Program ()) -> CodeWriter () --CodeWriter (Expression ())
 --compileLet a info v k m = k $ \name -> compileProgWithName (loc name) a (M.insert v name m)
 
-compileLetWithName :: Compile dom dom
-           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> (Name, Loc Expr ()) -> CodeWriter () --CodeWriter (Expression ())
-compileLetWithName a info v name m = compileProgWithName name Nothing Nothing a m
+--compileLetWithName :: Compile dom dom
+--           => ASTF (Decor Info dom) a -> Info (a -> b) -> VarId -> (Name, Loc Expr ()) -> CodeWriter () --CodeWriter (Expression ())
+--compileLetWithName a info v name m = compileProgWithName name Nothing Nothing a m
 
 
 

@@ -40,6 +40,7 @@ import Data.Typeable (Typeable(..))
 import Prelude hiding (init)
 
 import qualified Data.Map as M
+import Data.Maybe
 
 import Language.Syntactic
 import Language.Syntactic.Constructs.Binding
@@ -93,12 +94,12 @@ instance ( Compile dom dom
                ta2   = argType $ infoType $ getInfo lam2
                sa2   = fst $ infoSize $ getInfo lam2
                typ2  = compileTypeRep ta2 sa2
-               bound   = head $ compileExpr len m
+               bound = head $ compileExpr len m
                ta3   = infoType $ getInfo ixf
                sa3   = infoSize $ getInfo ixf
                typ3 = compileTypeRep ta3 sa3
-          in maybe Skip (\f -> f [bound]) af
-         .>> case typ3 of PIRE.TPointer _ ->  compileProgWithName out Nothing Nothing init m .>>
+          in --maybe Skip (\f -> f [bound]) af .>>
+            case typ3 of PIRE.TPointer _ ->  compileProgWithName out outc af init m .>>
                                               Alloc typ3 $ \temp tempc tempAf -> let (Assign _ xs _) = snd out (undefined)
                                                                                      (Index n _)     = fst out
                                                                                  in
@@ -110,7 +111,7 @@ instance ( Compile dom dom
                                                .>> snd out (var temp)
 
 
-                          _               -> compileProgWithName out Nothing Nothing init m .>>
+                         _               -> compileProgWithName out Nothing Nothing init m .>>
                                              Decl typ3 $ \temp -> let (Assign _ xs _) = snd out (undefined)
                                                                       (Index n _)     = fst out
                                                                   in 

@@ -79,7 +79,8 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
         | Just (SubConstr2 (Lambda v)) <- prjLambda lam = 
             let info = getInfo a
                 typ  = compileTypeRep (infoType info) (infoSize info)
-            in case typ of
+            in maybe Skip (\f -> f [var $ fromJust cname]) af .>> 
+              case typ of
                  PIRE.TPointer _ -> Alloc typ $ \n c af' -> 
                                       compileProgWithName (var n, loc n) (Just c) (Just af') a (M.insert v (var n) m) .>>
                                       compileProgWithName name cname af body (M.insert v (var n) m)

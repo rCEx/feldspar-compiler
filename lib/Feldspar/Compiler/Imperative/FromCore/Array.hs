@@ -155,7 +155,7 @@ instance ( Compile dom dom
                bound = (head $ compileExpr len m)
                (Index name' _) = fst name
            in maybe Skip (\f -> f [bound]) af
-          .>> for (Num 0) bound $ \e -> 
+          .>> par (Num 0) bound $ \e -> 
                compileProgWithName (fst name, locArray ( name') e) Nothing Nothing ixf 
                   (M.insert v e m)
 

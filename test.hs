@@ -24,18 +24,3 @@ dotProd xs ys = last $ sklansky (+) $ zipWith (*) xs ys
 vecMul :: Vector1 Index -> Vector1 Index -> Vector1 Index
 vecMul = zipWith (*)
 
-testScan :: Vector1 Index -> Vector1 Index
-testScan = scan (+) 0
-
-
-matVec :: Vector2 Index -> Vector1 Index -> Vector1 Index
-matVec xxs ys = map (dotProd ys) xxs
-  --indexed 1 (const $ sum $ zipWith (*) xs ys)
-  --where xs = head xxs
-
-pscan :: Vector1 Index -> Vector1 Index
-pscan xs = xs'
-  where
-    f   = (+)
-    (l,r) = splitAt (length xs) xs
-    xs'   = map (uncurry f) $ zip l r

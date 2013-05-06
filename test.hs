@@ -18,11 +18,8 @@ test2 x y = x+y
 test3 :: Vector1 Index -> Vector1 Index -> Vector1 Index
 test3 = zipWith (*)
 
-
 dotProd :: Vector1 Index -> Vector1 Index -> Data Index
-dotProd xs ys = fold (+) 0 xs'
-  where xs' = force $ zipWith (*) xs ys
-
+dotProd xs ys = last $ sklansky (+) $ zipWith (*) xs ys
 
 vecMul :: Vector1 Index -> Vector1 Index -> Vector1 Index
 vecMul = zipWith (*)

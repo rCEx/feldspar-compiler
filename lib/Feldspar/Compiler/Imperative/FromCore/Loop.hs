@@ -100,18 +100,18 @@ instance ( Compile dom dom
                typ3 = compileTypeRep ta3 sa3
           in --maybe Skip (\f -> f [bound]) af .>>
             case typ3 of PIRE.TPointer _ ->  compileProgWithName out outc af init m .>>
-                                              Alloc typ3 $ \temp tempc tempAf -> let (Assign _ xs _) = snd out (undefined)
+                                              Alloc typ3 $ \temp tempc tempAf -> let (Assign _ xs _) = snd out undefined
                                                                                      (Index n _)     = fst out
                                                                                  in
                                               --loc temp (Index n xs) .>>
                                               for (Num 0) bound $ \e -> 
-                                               compileLets bs1 
+                                               compileLets bs1
                                                            (compileProgWithName (var temp, locArray temp e) (Just tempc) (Just tempAf) ixf)
                                                            (M.insert st (fst out) $ M.insert ix e m)
                                                .>> snd out (var temp)
 
 
-                         _               -> compileProgWithName out Nothing Nothing init m .>>
+                         _               -> compileProgWithName out outc af init m .>>
                                              Decl typ3 $ \temp -> let (Assign _ xs _) = snd out (undefined)
                                                                       (Index n _)     = fst out
                                                                   in 

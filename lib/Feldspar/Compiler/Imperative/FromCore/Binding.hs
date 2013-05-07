@@ -60,7 +60,8 @@ import qualified Types as PIRE
 instance Compile (Core.Variable :|| Type) dom
   where
     compileExprSym (C' (Core.Variable v)) info Nil m = [variable]
-      where variable = fromMaybe (error $ "Binding  ExprSym: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
+      where variable = fromMaybe (error $ "Binding  ExprSym: Could not find mapping in Alias for " ++ show v ++ ", map is: " ++ show m) 
+                         $ M.lookup v m
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name variable
       where variable = fromMaybe (error $ "Binding ProgSym: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
@@ -132,10 +133,10 @@ compileLets ((v, ASTB b):bs) f m = let info = getInfo b
                                        typ  = compileTypeRep (infoType info) (infoSize info)
                                    in case typ of
                                        PIRE.TPointer _ -> Alloc typ $ \n c af -> 
-                                                            compileProgWithName (var n, loc n) (Just c) (Just af) b m 
+                                                            compileProgWithName (var n, loc n) (Just c) (Just af) b (M.insert v (var n) m)
                                                         .>> compileLets bs f (M.insert v (var n) m)
                                        _               -> Decl typ $ \n -> 
-                                                            compileProgWithName (var n, loc n) Nothing Nothing b m 
+                                                            compileProgWithName (var n, loc n) Nothing Nothing b (M.insert v (var n) m)
                                                         .>> compileLets bs f (M.insert v (var n) m)
 
 
@@ -157,9 +158,9 @@ compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
                                             PIRE.TPointer _ -> Alloc typ $ \n c af -> 
-                                                                compileProgWithName (var n, loc n) (Just c) (Just af) b m 
+                                                                compileProgWithName (var n, loc n) (Just c) (Just af) b (M.insert v (var n) m)
                                                             .>> compileBinds k bs ast (M.insert v (var n) m)
                                             _               -> Decl typ $ \n -> 
-                                                                  compileProgWithName (var n, loc n) Nothing Nothing b m 
+                                                                  compileProgWithName (var n, loc n) Nothing Nothing b (M.insert v (var n) m)
                                                               .>> compileBinds k bs ast (M.insert v (var n) m)
 

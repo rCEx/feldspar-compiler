@@ -30,7 +30,9 @@ seqFold :: Syntax a => (a -> a -> a) -> a -> Vector a -> a
 seqFold f init xs = forLoop (length xs) init $ \i acc -> f acc (xs ! i)
 
 parFold :: Syntax a => (a -> a -> a) -> a -> Vector a -> Vector a
-parFold f init xs = forLoop (log2 (length xs)) xs $ \i acc -> indexed (length acc) $ \j -> acc ! j
+parFold f init xs = forLoop (log2 (length xs)) xs $ \i acc -> indexed (length acc) $ \j -> condition (j `mod` (max 2 (2*i)) == 0)
+                                                                                             ((acc ! j) `f` (acc ! (j+1)))
+                                                                                             (acc ! j)
 --forLoop (log2 (length xs)) init $ \i acc -> step' f i xs
 --
 --

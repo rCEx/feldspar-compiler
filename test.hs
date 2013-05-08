@@ -51,13 +51,3 @@ parFold f xs = forLoop (log2 (length xs)) xs $ \i' acc -> let i = max 1 (i'*2) i
 foldTest :: Vector1 Index -> Vector1 Index
 foldTest xs = parFold (+) xs
 
-
-
--- Counting Sort
-
-countingSort :: Data Length -> Vector1 Index -> Vector1 Index
-countingSort k v = undefined
-
-
-histogram :: Vector1 Index -> Vector1 Index -> Vector1 Index
-histogram v out = undefined -- push vectors

@@ -38,12 +38,18 @@ fftInt n xs = fftCore n (+) xs
 seqFold :: Syntax a => (a -> a -> a) -> a -> Vector a -> a
 seqFold f init xs = forLoop (length xs) init $ \i acc -> f acc (xs ! i)
 
-parFold :: Syntax a => (a -> a -> a) -> a -> Vector a -> Vector a
-parFold f init xs = forLoop (log2 (length xs)) xs $ \i acc -> indexed (length acc) $ \j -> condition (j `mod` 2 == 0)
-                                                                                             ((acc ! j) `f` (acc ! (j+1)))
+
+
+
+parFold :: Syntax a => (a -> a -> a) -> Vector a -> Vector a
+parFold f xs = forLoop (log2 (length xs)) xs $ \i' acc -> let i = max 1 (i'*2) in indexed (length acc) $ \j -> condition 
+                                                                                             (j `mod` (2*i) == 0)
+                                                                                             (f (acc ! j) 
+                                                                                                (acc ! (j+i)
+                                                                                                ))
                                                                                              (acc ! j)
 foldTest :: Vector1 Index -> Vector1 Index
-foldTest xs = parFold (+) 0 xs
+foldTest xs = parFold (+) xs
 
 
 

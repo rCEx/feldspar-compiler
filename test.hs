@@ -54,4 +54,4 @@ countingSort k v = undefined
 
 
 histogram :: Vector1 Index -> Vector1 Index -> Vector1 Index
-histogram v out = undefined -- requires push vectors
+histogram v out = undefined -- push vectors

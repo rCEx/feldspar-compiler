@@ -44,11 +44,16 @@ seqFold f init xs = forLoop (length xs) init $ \i acc -> f acc (xs ! i)
 
 
 parFold :: Syntax a => (a -> a -> a) -> Vector a -> Vector a
-parFold f xs = forLoop ((log2 $ length xs)) xs $ \i' acc -> indexed (length acc) $ \j -> condition 
-                                                                                          (j `mod` (2^i') == 0)
+parFold f xs = forLoop (log2 $ length xs) xs $ \i acc -> condition (i <= 0) (indexed (length acc) $ \j -> condition
+                                                                                          (j `mod` 2 == 0)
+                                                                                          (f (acc ! j)
+                                                                                             (acc ! (j + 1)))
+                                                                                          (acc ! j))
+                                                                              (indexed (length acc) $ \j -> condition 
+                                                                                          (j `mod` (2^i) == 0)
                                                                                           (f (acc ! j) 
-                                                                                             (acc ! (j+(2^(i'-1)))))
-                                                                                          (acc ! j)
+                                                                                             (acc ! (j+(2^(i-1)))))
+                                                                                          (acc ! j)) -- doesn't matter.
 
 
 foldTest :: Vector1 Index -> Vector1 Index

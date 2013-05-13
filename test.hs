@@ -23,7 +23,7 @@ test3 :: Vector1 Index -> Vector1 Index -> Vector1 Index
 test3 = zipWith (*)
 
 dotProd :: Vector1 Index -> Vector1 Index -> Data Index
-dotProd xs ys = last $ sklansky (+) $ zipWith (*) xs ys
+dotProd xs ys = parFold (+) $ zipWith (*) xs ys
 
 vecMul :: Vector1 Index -> Vector1 Index -> Vector1 Index
 vecMul = zipWith (*)
@@ -43,19 +43,14 @@ seqFold f init xs = forLoop (length xs) init $ \i acc -> f acc (xs ! i)
 
 
 
-parFold :: Syntax a => (a -> a -> a) -> Vector a -> Vector a
-parFold f xs = forLoop (log2 $ length xs) xs $ \i acc -> condition (i <= 0) (indexed (length acc) $ \j -> condition
-                                                                                          (j `mod` 2 == 0)
-                                                                                          (f (acc ! j)
-                                                                                             (acc ! (j + 1)))
-                                                                                          (acc ! j))
-                                                                              (indexed (length acc) $ \j -> condition 
+parFold :: (Syntax a, Num a) => (a -> a -> a) -> Vector a -> a
+parFold f xs = head $ forLoop (log2 $ length xs-1) xs $ \i' acc -> let i = i' + 1 in indexed (length acc) $ \j -> condition 
                                                                                           (j `mod` (2^i) == 0)
                                                                                           (f (acc ! j) 
                                                                                              (acc ! (j+(2^(i-1)))))
-                                                                                          (acc ! j)) -- doesn't matter.
+                                                                                          0 -- doesn't matter.
 
 
-foldTest :: Vector1 Index -> Vector1 Index
+foldTest :: Vector1 Index -> Data Index 
 foldTest xs = parFold (+) xs
 

@@ -84,6 +84,7 @@ toInfix s es | s == "(*)"  , [a,b] <- es = a .* b
              | s == "(!=)" , [a,b] <- es = BinOp $ Expr.NEQ a b
              | s == "(/=)" , [a,b] <- es = BinOp $ Expr.NEQ a b
              | s == "(.&.)", [a,b] <- es = BinOp $ Expr.BWAnd a b
+             | s == "(^)"  , [a,b] <- es = Call (var "pow") es
              | s == "shiftL" , [a,b] <- es = BinOp $ Expr.ShiftL a b
              | s == "shiftR" , [a,b] <- es = BinOp $ Expr.ShiftR a b
              | s == "bitScan" , [a] <- es = Call (var "bitScan_fun_int32_t") es

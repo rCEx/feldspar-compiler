@@ -32,24 +32,12 @@ vecMul = zipWith (*)
 --fftInt :: Data Index -> Vector1 Index -> Vector1 Index
 --fftInt n xs = fftCore n (+) xs
 
-
-
-
-
-
-seqFold :: Syntax a => (a -> a -> a) -> a -> Vector a -> a
-seqFold f init xs = forLoop (length xs) init $ \i acc -> f acc (xs ! i)
-
-
-
-
 parFold :: (Syntax a, Num a) => (a -> a -> a) -> Vector a -> a
 parFold f xs = head $ forLoop (log2 $ length xs-1) xs $ \i' acc -> let i = i' + 1 in indexed (length acc) $ \j -> condition 
                                                                                           (j `mod` (2^i) == 0)
                                                                                           (f (acc ! j) 
                                                                                              (acc ! (j+(2^(i-1)))))
                                                                                           0 -- doesn't matter.
-
 
 foldTest :: Vector1 Index -> Data Index 
 foldTest xs = parFold (+) xs

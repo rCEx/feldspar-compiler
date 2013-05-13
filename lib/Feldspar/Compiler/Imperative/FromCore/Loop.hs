@@ -70,6 +70,8 @@ instance ( Compile dom dom
          )
       => Compile (Loop :|| Type) dom
   where
+    compileExprSym (C' ForLoop) _ (len :* init :* (lam1 :$ lt1) :* Nil) m = error "compileExprSym forLoop"
+
     -- TODO this doesn't compile let binds
     compileProgSym (C' ForLoop) _ k (len :* init :* (lam1 :$ lt1) :* Nil) m
         | Just (SubConstr2 (Lambda ix)) <- prjLambda lam1

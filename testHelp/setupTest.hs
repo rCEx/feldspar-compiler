@@ -2,13 +2,14 @@ import System.Cmd
 
 main :: IO ()
 main = do system cc
-          sequence_ $ map system $ runAll "./a.out " 22
+          sequence_ $ map system $ runAll "./a.out " 24
 
 dotProd = appendFile "main.c" $ timeMeasure ++ main2VecSca "timersDotProd.log"
 
 runAll name n = map ((++) name . show) (sizes n)
 
 cc = "gcc -std=c99 -I ../C_new/ -I /usr/local/cuda/include/ -lOpenCL ../C_new/feldspar_c99.c -lm main.c"
+
 sizes :: Integer -> [Integer]
 sizes n = [2^i | i <- [0..n]]
 

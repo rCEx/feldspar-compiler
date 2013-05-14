@@ -2,7 +2,7 @@ import System.Cmd
 
 main :: IO ()
 main = do system cc
-          sequence_ $ map system $ runAll "./a.out " 24
+          sequence_ $ map system $ runAll "./a.out " 23
 
 dotProd = appendFile "main.c" $ timeMeasure ++ main2VecSca "timersDotProd.log"
 

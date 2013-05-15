@@ -65,8 +65,12 @@ instance Compile (Core.Variable :|| Type) dom
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name variable
       where variable = fromMaybe (error $ "Binding ProgSym: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
-    compileProgBasic name cname af (C' (Core.Variable v)) info Nil m = snd name v'
-      where v' = fromMaybe (error $ "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
+    compileProgBasic name cname af (C' (Core.Variable v)) info Nil m = maybe Skip (\f -> f $ [case v' of 
+                                                                                              Index v is -> Index (v ++ "c") is
+                                                                                              a          -> a
+                                                                                  ]) af .>>
+                                                                       snd name v'
+      where v'= fromMaybe (error $ "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
 
 instance Compile (CLambda Type) dom

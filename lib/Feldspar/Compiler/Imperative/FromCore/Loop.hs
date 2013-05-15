@@ -100,8 +100,8 @@ instance ( Compile dom dom
                ta3   = infoType $ getInfo ixf
                sa3   = infoSize $ getInfo ixf
                typ3 = compileTypeRep ta3 sa3
-          in --maybe Skip (\f -> f [bound]) af .>>
-            case typ3 of PIRE.TPointer _ ->  compileProgWithName out outc af init m .>>
+          in maybe Skip (\f -> f [bound]) af .>>
+            case typ3 of PIRE.TPointer _ ->  compileProgWithName out Nothing Nothing init m .>>
                                               Alloc typ3 $ \temp tempc tempAf -> let (Assign _ xs _) = snd out undefined
                                                                                      (Index n _)     = fst out
                                                                                  in

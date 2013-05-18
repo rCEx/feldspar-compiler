@@ -86,10 +86,14 @@ toInfix s es | s == "(*)"  , [a,b] <- es = a .* b
              | s == "(.&.)", [a,b] <- es = BinOp $ Expr.BWAnd a b
              | s == "(^)"  , [a,b] <- es = Call (var "pow") es
              | s == "rem"  , [a,b] <- es = BinOp $ Expr.Mod a b
+             | s == "xor"  , [a,b] <- es = BinOp $ Expr.BWXOr a b
              | s == "shiftL" , [a,b] <- es = BinOp $ Expr.ShiftL a b
              | s == "shiftR" , [a,b] <- es = BinOp $ Expr.ShiftR a b
              | s == "bitScan" , [a] <- es = Call (var "bitScan_fun_int32_t") es
              | s == "testBit" , [a,b] <- es = Call (var "testBit_fun_int32_t") es
+             | s == "complementBit" = Call (var "complementBit_fun_int32_t") es
+             | s == "complement" , [a] <- es = UnOp $ Expr.BWNeg a
+             | s == "bit" , [a] <- es = BinOp $ Expr.ShiftL a (Num 1)
              | otherwise  = Call (var s) es
 
 -- | Convenient implementation of 'compileExprSym' for primitive functions

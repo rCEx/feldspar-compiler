@@ -19,7 +19,8 @@ import Debug.Trace
 dotProd :: Vector1 Word64 -> Vector1 Word64 -> Vector1 Word64
 dotProd xs ys = parFold (+) $ zipWith (*) xs ys
 
-
+dp' :: Vector1 Word64 -> Vector1 Word64 -> Data Word64
+dp' a b = sum $ zipWith (*) a b
 
 parFold :: (Syntax a, Num a) => (a -> a -> a) -> Vector a -> Vector a
 parFold f xs = forLoop (log2 (length xs) - 1) xs $ \i' acc -> let i = i' + 1 in indexed (length acc) $ \j -> condition 

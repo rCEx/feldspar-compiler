@@ -4,6 +4,7 @@ import Feldspar
 import Feldspar.Vector
 --import Feldspar.Repa
 import ParScan
+import Bitonic
 
 --import FFT.Pull
 
@@ -28,9 +29,10 @@ parFold f xs = forLoop (log2 (length xs) - 1) xs $ \i' acc -> let i = i' + 1 in 
                                                                                           (f (acc ! j) 
                                                                                              (acc ! (j+(2^(i-1)))))
                                                                                           0 -- doesn't matter.
---fftInt :: Data Word64 -> Vector1 Word64 -> Vector1 Word64
---fftInt n xs = fftCore n (+) xs
-
 
 parScan :: Vector1 Index -> Vector1 Index
 parScan xs = sklansky (+) xs
+
+
+bitonicTest :: Data Index -> Vector1 Index -> Vector1 Index
+bitonicTest n xs = tsort n xs

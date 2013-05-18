@@ -152,8 +152,7 @@ compileBinds :: Compile dom dom
 compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                           typ  = compileTypeRep (infoType info) (infoSize info)
                                       in case typ of
-                                          PIRE.TPointer _ -> --compileProgWithName (deref $ var out, loc out) Nothing Nothing ast m
-                                                              Alloc typ $ \n c af -> 
+                                          PIRE.TPointer _ -> Alloc typ $ \n c af -> 
                                                                compileProgWithName (var n, loc n) (Just c) (Just af) ast m 
                                                               .>> locDeref out (var n)
                                           _               -> Decl typ $ \n -> 

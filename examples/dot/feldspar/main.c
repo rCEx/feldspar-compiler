@@ -5,10 +5,12 @@
 #include <time.h>
 #include "feldspar_c99.h"
 #include "dotProd.h"
+
+//#include <sys/time.h>
 #define MAX_SOURCE_SIZE (0x100000)
 
 
-void outputMeasure(char *to, clock_t time, int size) {
+void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
     fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
@@ -33,12 +35,17 @@ int main (int argc, char *argv[]) {
 
   struct array *res = NULL;
   res = initArray(res, sizeof(int), size);
-  clock_t t;
-  t = clock();
-  f0(a, b, &res);
-  t = clock() - t;
+  struct timespec timer;
+  clock_gettime(CLOCK_REALTIME, &timer);
 
-  outputMeasure("dotFeldspar.log",t, size);
+ // clock_t t;
+ // t = clock();
+  f0(a, b, &res);
+  //t = clock() - t;
+
+  outputMeasure("dotFeldspar.log",timer.tv_nsec, size);
+  printf("%i\n", at(int, res,0));
+
   return 0;
 }
 

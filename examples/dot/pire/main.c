@@ -44,13 +44,13 @@ void f0(int* arg1, int arg1c, int* arg2, int arg2c, int** out4) {
   clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&arg2_obj);
   clEnqueueWriteBuffer(command_queue, arg2_obj, CL_TRUE, 0, mem3*sizeof(int), arg2, 0, NULL, NULL);
   size_t global_item_size = mem3;
-  size_t local_item_size = 1024;
+  size_t local_item_size = min(arg1c,1024);
   clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
   clEnqueueReadBuffer(command_queue, mem5_obj, CL_TRUE, 0, mem3*sizeof(int), mem5, 0, NULL, NULL);
 
 
   int mem7c;
-  for(int q = 0; q < ((32 - bitScan_fun_int32_t(mem3)) - 1); q++) {
+  for(int q = 0; q < ((32 - bitScan_fun_int32_t(mem3)-2) - 1); q++) {
     int mem9;
     mem9 = pow(2,(q + 1));
     int mem10;
@@ -73,7 +73,7 @@ void f0(int* arg1, int arg1c, int* arg2, int arg2c, int** out4) {
     clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&mem10_obj);
     clEnqueueWriteBuffer(command_queue, mem10_obj, CL_TRUE, 0, sizeof(int), &mem10, 0, NULL, NULL);
     global_item_size = mem5c;
-    local_item_size = 1024;
+    local_item_size = min(arg1c,1024);
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     clEnqueueReadBuffer(command_queue, mem7_obj, CL_TRUE, 0, mem5c*sizeof(int), mem7, 0, NULL, NULL);
 

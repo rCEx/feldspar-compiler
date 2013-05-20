@@ -8,10 +8,10 @@
 #define MAX_SOURCE_SIZE (0x100000)
 
 
-void outputMeasure(char *to, clock_t time, int size) {
+void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
+    fprintf(fp, "%li %i\n", time, size);
   }
   fclose(fp);
 }
@@ -30,12 +30,15 @@ int main (int argc, char *argv[]) {
 
   struct array *res = NULL;
   res = initArray(res, sizeof(int), size);
-  clock_t t;
-  t = clock();
-  f0(base, a, &res);
-  t = clock() - t;
 
-  outputMeasure("scanFeldspar.log",t, size);
+  struct timespec timer1;
+  struct timespec timer2;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
+  f0(a, &res);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
+  long nanos = timer2.tv_nsec - timer1.tv_nsec;
+
+  outputMeasure("scanFeldspar.log",nanos, size);
   return 0;
 }
 

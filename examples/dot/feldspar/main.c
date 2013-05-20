@@ -13,7 +13,7 @@
 void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
+    fprintf(fp, "%li %i\n", time, size);
   }
   fclose(fp);
 }
@@ -35,15 +35,17 @@ int main (int argc, char *argv[]) {
 
   struct array *res = NULL;
   res = initArray(res, sizeof(int), size);
-  struct timespec timer;
-  clock_gettime(CLOCK_REALTIME, &timer);
-
+  struct timespec timer1;
+  struct timespec timer2;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
  // clock_t t;
  // t = clock();
   f0(a, b, &res);
   //t = clock() - t;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
+  long nanos = timer2.tv_nsec - timer1.tv_nsec;
 
-  outputMeasure("dotFeldspar.log",timer.tv_nsec, size);
+  outputMeasure("dotFeldspar.log",nanos, size);
   printf("%i\n", at(int, res,0));
 
   return 0;

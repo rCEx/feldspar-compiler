@@ -46,7 +46,7 @@ void f0(int* arg1, int arg1c, int** out2) {
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&mem4_obj);
     clEnqueueWriteBuffer(command_queue, mem4_obj, CL_TRUE, 0, mem3c*sizeof(int), mem4, 0, NULL, NULL);
     size_t global_item_size = mem3c;
-    size_t local_item_size = 1024;
+    size_t local_item_size = min(arg1c,1024);
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     clEnqueueReadBuffer(command_queue, mem4_obj, CL_TRUE, 0, mem3c*sizeof(int), mem4, 0, NULL, NULL);
 
@@ -57,13 +57,16 @@ void f0(int* arg1, int arg1c, int** out2) {
 }
 
 
-void outputMeasure(char *to, clock_t time, int size) {
+void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
+    fprintf(fp, "%li %i\n", time, size);
   }
   fclose(fp);
 }
+
+
+
 
 int main (int argc, char *argv[]) {
   const int size = atoi(argv[1]);
@@ -73,11 +76,15 @@ int main (int argc, char *argv[]) {
     a[i] = i%4;
   }
   int *res;
-  clock_t t;
-  t = clock();
+
+  struct timespec timer1;
+  struct timespec timer2;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
   f0(a, size, &res);
-  t = clock() - t;
-  outputMeasure("scanPIRE.log",t, size);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
+  long nanos = timer2.tv_nsec - timer1.tv_nsec;
+
+  outputMeasure("scanPIRE.log",nanos, size);
   printf("%i : res \n", res[size-1]);
   return 0;
 }

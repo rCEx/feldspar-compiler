@@ -84,13 +84,16 @@ void f0(int* arg1, int arg1c, int* arg2, int arg2c, int** out4) {
 }
 
 
-void outputMeasure(char *to, clock_t time, int size) {
+
+void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
+    fprintf(fp, "%li %i\n", time, size);
   }
   fclose(fp);
 }
+
+
 
 int main (int argc, char *argv[]) {
   const int size = atoi(argv[1]);
@@ -102,11 +105,15 @@ int main (int argc, char *argv[]) {
     b[i] = i%4;
   }
   int *res;
-  clock_t t;
-  t = clock();
+
+  struct timespec timer1;
+  struct timespec timer2;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
   f0(a,size,b,size, &res);
-  t = clock() - t;
-  outputMeasure("dotProdPIRE.log",t, size);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
+  long nanos = timer2.tv_nsec - timer1.tv_nsec;
+
+  outputMeasure("dotProdPIRE.log",nanos, size);
   printf("%i : res \n", res[0]);
   return 0;
 }

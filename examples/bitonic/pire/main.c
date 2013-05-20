@@ -53,7 +53,7 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
     clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&o_obj);
     clEnqueueWriteBuffer(command_queue, o_obj, CL_TRUE, 0, sizeof(int), &o, 0, NULL, NULL);
     size_t global_item_size = mem4c;
-    size_t local_item_size = 1024;
+    size_t local_item_size = min(arg2c,1024);
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     clEnqueueReadBuffer(command_queue, mem9_obj, CL_TRUE, 0, mem4c*sizeof(int), mem9, 0, NULL, NULL);
 
@@ -85,7 +85,7 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
       clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&mem15_obj);
       clEnqueueWriteBuffer(command_queue, mem15_obj, CL_TRUE, 0, sizeof(int), &mem15, 0, NULL, NULL);
       global_item_size = mem5c;
-      local_item_size = 1024;
+      local_item_size = min(arg2c,1024);
       clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
       clEnqueueReadBuffer(command_queue, mem13_obj, CL_TRUE, 0, mem5c*sizeof(int), mem13, 0, NULL, NULL);
 
@@ -99,29 +99,37 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
 
 
 
-void outputMeasure(char *to, clock_t time, int size) {
+void outputMeasure(char *to, long time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %f %i\n", time, ((double)time)/CLOCKS_PER_SEC, size);
+    fprintf(fp, "%li %i\n", time, size);
   }
   fclose(fp);
 }
 
-int main (int argc, char *argv[]) {
-  const int size = atoi(argv[1]);
-  const int arrSize = pow(2,size);
 
-  int *a = (int*) malloc(sizeof(int)*size);
+
+
+int main (int argc, char *argv[]) {
+  const int arrSize = atoi(argv[1]);
+  const int size = (int) log2(arrSize); //pow(2,size);
+
+  int *a = (int*) malloc(sizeof(int)*arrSize);
   int i;
   for(i = 0; i < arrSize; i++) {
     a[i] = i%4;
   }
   int *res = NULL;
-  clock_t t;
-  t = clock();
+
+
+  struct timespec timer1;
+  struct timespec timer2;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
   f0(size, a, arrSize, &res);
-  t = clock() - t;
-  outputMeasure("bitonicPIRE.log",t, arrSize);
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
+  long nanos = timer2.tv_nsec - timer1.tv_nsec;
+
+  outputMeasure("bitonicPIRE.log",nanos, arrSize);
   return 0;
 }
 

@@ -36,11 +36,11 @@ int main (int argc, char *argv[]) {
   struct timespec timer1;
   struct timespec timer2;
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
-  f0((int)log2(size), a, &res);
+  f0(log2(size), a, &res);
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
   long nanos = timer2.tv_nsec - timer1.tv_nsec;
 
-  
+  outputMeasure("bitonicFeldspar.log",nanos, size);
 
   return 0;
 }

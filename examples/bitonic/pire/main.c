@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
@@ -67,7 +68,7 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
   int mem4c;
   mem4c = arg2c;
   int* mem4 = (int*) malloc(sizeof(int) * mem4c);
-  mem4 = arg2;
+  memcpy(mem4,arg2,sizeof(int)*mem4c);
   int mem5c;
   for(int o = 0; o < arg1; o++) {
     int mem7;
@@ -97,7 +98,8 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
 
     mem5c = mem9c;
     int* mem5 = (int*) malloc(sizeof(int) * mem5c);
-    mem5 = mem9;
+    memcpy(mem5,mem9,sizeof(int)*mem5c);
+    free(mem9);
     int mem13c;
     for(int w = 0; w < o; w++) {
       int mem15;
@@ -124,10 +126,13 @@ void f0(int arg1, int* arg2, int arg2c, int** out3) {
       clEnqueueReadBuffer(command_queue, mem13_obj, CL_TRUE, 0, mem5c*sizeof(int), mem13, 0, NULL, NULL);
 
 
-      mem5 = mem13;
+      memcpy(mem5,mem13,sizeof(int)*mem5c);
+      free(mem13);
     }
-    mem4 = mem5;
+    memcpy(mem4,mem5,sizeof(int)*mem4c);
+    free(mem5);
   }
+  free(*out3);
   (*out3) = mem4;
 }
 
@@ -180,6 +185,8 @@ int main (int argc, char *argv[]) {
   /// Teardown
   teardown();
 
+  free(a);
+  free(res);
   return 0;
 }
 

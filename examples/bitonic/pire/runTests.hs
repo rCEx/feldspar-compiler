@@ -1,7 +1,7 @@
 import System.Cmd
 
 main :: IO ()
-main = sequence_ $ map system $ runAll "./a.out " 24
+main = sequence_ $ map system $ runAll "./a.out " 20
 
 runAll name n = map ((++) name . show) (sizes n)
 

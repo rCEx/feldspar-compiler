@@ -175,10 +175,16 @@ int main (int argc, char *argv[]) {
 
   /// Test
   double t1,t2;
-  t1 = getRealTime();
-  f0(size, a, arrSize, &res);
+  int const iter = 10;
+  printf("Running test of size %d (%d iterations)\n", arrSize, iter);
+  for (int i=-2; i<iter; i++) // Negative i is warmup
+  {
+    if (i == 0)
+      t1 = getRealTime();
+    f0(size, a, arrSize, &res);
+  }
   t2 = getRealTime();
-  double nanos = (t2 - t1) * 1.0e9;
+  double nanos = (t2 - t1) * 1.0e9 / iter;
 
   outputMeasure("bitonicPIRE.log",nanos, arrSize);
 

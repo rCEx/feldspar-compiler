@@ -113,7 +113,7 @@ instance ( Compile dom dom
                                               --loc temp (Index n xs) .>>
                                               for (Num 0) bound $ \e -> 
                                                compileLets bs1
-                                                           (compileProgWithName (var temp, loc temp) (Just tempc) (Just tempAf) ixf)
+                                                           (compileProgWithName (var temp, memcpy (var temp) (var tempc) PIRE.TInt) (Just tempc) (Just tempAf) ixf)
                                                            (M.insert st (fst out) $ M.insert ix e m)
                                                .>> memcpy (fst out) (var tempc) PIRE.TInt (var temp) 
                                                .>> free (var temp)

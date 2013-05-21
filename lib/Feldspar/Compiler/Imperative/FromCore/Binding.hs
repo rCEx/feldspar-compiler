@@ -89,6 +89,7 @@ instance (Compile dom dom, Project (CLambda Type) dom) => Compile Let dom
                  PIRE.TPointer _ -> Alloc typ $ \n c af' -> 
                                       compileProgWithName (var n, loc n) (Just c) (Just af') a (M.insert v (var n) m) .>>
                                       compileProgWithName name cname af body (M.insert v (var n) m)
+                                    .>> free (var n)
                                     --  compileLetWithName a (getInfo lam) v name (M.insert v n m)
                                     --  .>> compileProgWithName name (Just c) (Just af) body (M.insert v n m)
                  _               -> Decl typ $ \n ->
@@ -139,6 +140,7 @@ compileLets ((v, ASTB b):bs) f m = let info = getInfo b
                                        PIRE.TPointer _ -> Alloc typ $ \n c af -> 
                                                             compileProgWithName (var n, loc n) (Just c) (Just af) b (M.insert v (var n) m)
                                                         .>> compileLets bs f (M.insert v (var n) m)
+                                                        .>> free (var n)
                                        _               -> Decl typ $ \n -> 
                                                             compileProgWithName (var n, loc n) Nothing Nothing b (M.insert v (var n) m)
                                                         .>> compileLets bs f (M.insert v (var n) m)
@@ -154,7 +156,9 @@ compileBinds k [] ast m = k $ \out -> let info = getInfo ast
                                       in case typ of
                                           PIRE.TPointer _ -> Alloc typ $ \n c af -> 
                                                                compileProgWithName (var n, loc n) (Just c) (Just af) ast m 
-                                                              .>> locDeref out (var n)
+                                                              .>> memcpy (deref $ var out) (var c) PIRE.TInt (var n)
+                                                              .>> free (var n)
+                                                                --locDeref out (var n)
                                           _               -> Decl typ $ \n -> 
                                                               compileProgWithName (var n, loc n) Nothing Nothing ast m 
                                                           .>> locDeref out (var n)
@@ -164,6 +168,7 @@ compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             PIRE.TPointer _ -> Alloc typ $ \n c af -> 
                                                                 compileProgWithName (var n, loc n) (Just c) (Just af) b (M.insert v (var n) m)
                                                             .>> compileBinds k bs ast (M.insert v (var n) m)
+                                                            .>> free (var n)
                                             _               -> Decl typ $ \n -> 
                                                                   compileProgWithName (var n, loc n) Nothing Nothing b (M.insert v (var n) m)
                                                               .>> compileBinds k bs ast (M.insert v (var n) m)

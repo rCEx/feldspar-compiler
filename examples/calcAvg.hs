@@ -10,13 +10,16 @@ main = do name   <- fmap head getArgs
           powers' <- fmap (flip (!!) 2) getArgs 
           let powers = 1 --read powers' :: Int
           file <- readFile name
-          putStrLn $ show $ stringToAvg file iter powers
+          putStrLn $ show $ stringToAvg file iter
 
-stringToAvg :: String -> Int -> Int -> [Double]
-stringToAvg s iter powers = let allPowers = take iter $ map (take powers) $ splitEvery 2 (words s) :: [[String]]
-                                allTimes = map head $ allPowers :: [String]
-                                allAvgs = avg (map read allTimes :: [Double])
-                            in [allAvgs]
+stringToAvg :: String -> Int -> [(Double, Double)]
+stringToAvg s iter = let allPowers = map (map read) (splitEvery 2 (words s)) :: [[Double]]
+                         allTimes = map head allPowers
+                         allAvgs  = map avg $ splitEvery iter allTimes
+                         
+
+                         
+                     in zip allAvgs (map head $ drop 1 allPowers)
 
 
 

@@ -13,6 +13,8 @@
 #include "feldspar_c99.h"
 #define MAX_SOURCE_SIZE (0x100000)
 
+#include <assert.h>
+
 #ifdef __APPLE__
 #include <sys/time.h>
 double getRealTime() {
@@ -32,6 +34,8 @@ double getRealTime() {
 // Initialization
 //
 
+static cl_platform_id platform_id = NULL;
+static cl_device_id device_id = NULL;
 static cl_program program;
 
 static cl_kernel k10, k17;
@@ -50,7 +54,7 @@ void init()
   fclose( fp );
 
   program = clCreateProgramWithSource(context, 1, (const char **)&source_str, (const size_t *)&source_size, NULL);
-  clBuildProgram(program, 1, NULL /*&device_id*/, NULL, NULL, NULL);
+  clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
   
   k10 = clCreateKernel(program, "k10", NULL);
   k17 = clCreateKernel(program, "k17", NULL);
@@ -65,75 +69,57 @@ void teardown()
 }
 
 void f0(int arg1, int* arg2, int arg2c, int** out3) {
-  int mem4c;
-  mem4c = arg2c;
-  int* mem4 = (int*) malloc(sizeof(int) * mem4c);
-  memcpy(mem4,arg2,sizeof(int)*mem4c);
-  int mem5c;
+  int sz = arg2c*sizeof(int);
+
+  // Allocate memory
+  cl_mem mem4_obj  = clCreateBuffer(context, CL_MEM_READ_WRITE, sz, NULL, NULL);
+  cl_mem mem5_obj  = clCreateBuffer(context, CL_MEM_READ_WRITE, sz, NULL, NULL);
+
+  // Initialization
+  clEnqueueWriteBuffer(command_queue, mem4_obj, CL_TRUE, 0, sz, arg2, 0, NULL, NULL);
+
+  // Create schedule by enqueueing all steps
   for(int o = 0; o < arg1; o++) {
     int mem7;
     mem7 = (~(-1 << (o + 1)));
     int mem8;
     mem8 = (o + 1);
-    int mem9c;
-    mem9c = mem4c;
-    int* mem9 = (int*) malloc(sizeof(int) * mem9c);
-    cl_mem mem4_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, mem4c*sizeof(int), NULL, NULL);
-    clSetKernelArg(k10, 0, sizeof(cl_mem), (void *)&mem4_obj);
-    clEnqueueWriteBuffer(command_queue, mem4_obj, CL_TRUE, 0, mem4c*sizeof(int), mem4, 0, NULL, NULL);
-    cl_mem mem7_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, NULL);
-    clSetKernelArg(k10, 1, sizeof(cl_mem), (void *)&mem7_obj);
-    clEnqueueWriteBuffer(command_queue, mem7_obj, CL_TRUE, 0, sizeof(int), &mem7, 0, NULL, NULL);
-    cl_mem mem9_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, mem4c*sizeof(int), NULL, NULL);
-    clSetKernelArg(k10, 2, sizeof(cl_mem), (void *)&mem9_obj);
-    clEnqueueWriteBuffer(command_queue, mem9_obj, CL_TRUE, 0, mem4c*sizeof(int), mem9, 0, NULL, NULL);
-    cl_mem o_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, NULL);
-    clSetKernelArg(k10, 3, sizeof(cl_mem), (void *)&o_obj);
-    clEnqueueWriteBuffer(command_queue, o_obj, CL_TRUE, 0, sizeof(int), &o, 0, NULL, NULL);
-    size_t global_item_size = mem4c;
+    size_t global_item_size = arg2c;
     size_t local_item_size = min(arg2c,1024);
+    cl_int err = CL_SUCCESS;
+    err |= clSetKernelArg(k10, 0, sizeof(cl_mem), &mem4_obj);
+    err |= clSetKernelArg(k10, 1, sizeof(int), &mem7);
+    err |= clSetKernelArg(k10, 2, sizeof(cl_mem), &mem5_obj);
+    err |= clSetKernelArg(k10, 3, sizeof(int), &o);
+    if (err != CL_SUCCESS)
+      printf("error k10: %d\n", err);
     clEnqueueNDRangeKernel(command_queue, k10, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-    clEnqueueReadBuffer(command_queue, mem9_obj, CL_TRUE, 0, mem4c*sizeof(int), mem9, 0, NULL, NULL);
 
-
-    mem5c = mem9c;
-    int* mem5 = (int*) malloc(sizeof(int) * mem5c);
-    memcpy(mem5,mem9,sizeof(int)*mem5c);
-    free(mem9);
-    int mem13c;
     for(int w = 0; w < o; w++) {
       int mem15;
       mem15 = (mem8 - (w + 2));
       int mem16;
       mem16 = (1 << mem15);
-      mem13c = mem5c;
-      int* mem13 = (int*) malloc(sizeof(int) * mem13c);
-      cl_mem mem5_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, mem5c*sizeof(int), NULL, NULL);
-      clSetKernelArg(k17, 0, sizeof(cl_mem), (void *)&mem5_obj);
-      clEnqueueWriteBuffer(command_queue, mem5_obj, CL_TRUE, 0, mem5c*sizeof(int), mem5, 0, NULL, NULL);
-      cl_mem mem16_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, NULL);
-      clSetKernelArg(k17, 1, sizeof(cl_mem), (void *)&mem16_obj);
-      clEnqueueWriteBuffer(command_queue, mem16_obj, CL_TRUE, 0, sizeof(int), &mem16, 0, NULL, NULL);
-      cl_mem mem13_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, mem5c*sizeof(int), NULL, NULL);
-      clSetKernelArg(k17, 2, sizeof(cl_mem), (void *)&mem13_obj);
-      clEnqueueWriteBuffer(command_queue, mem13_obj, CL_TRUE, 0, mem5c*sizeof(int), mem13, 0, NULL, NULL);
-      cl_mem mem15_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(int), NULL, NULL);
-      clSetKernelArg(k17, 3, sizeof(cl_mem), (void *)&mem15_obj);
-      clEnqueueWriteBuffer(command_queue, mem15_obj, CL_TRUE, 0, sizeof(int), &mem15, 0, NULL, NULL);
-      global_item_size = mem5c;
+      global_item_size = arg2c;
       local_item_size = min(arg2c,1024);
+      cl_int err = CL_SUCCESS;
+      err |= clSetKernelArg(k17, 0, sizeof(cl_mem), &mem5_obj);
+      err |= clSetKernelArg(k17, 1, sizeof(int), &mem16);
+      err |= clSetKernelArg(k17, 2, sizeof(cl_mem), &mem4_obj);
+      err |= clSetKernelArg(k17, 3, sizeof(int), &mem15);
+      if (err != CL_SUCCESS)
+        printf("error k17: %d\n", err);
       clEnqueueNDRangeKernel(command_queue, k17, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-      clEnqueueReadBuffer(command_queue, mem13_obj, CL_TRUE, 0, mem5c*sizeof(int), mem13, 0, NULL, NULL);
-
-
-      memcpy(mem5,mem13,sizeof(int)*mem5c);
-      free(mem13);
+      clEnqueueCopyBuffer(command_queue, mem4_obj, mem5_obj, 0, 0, sz, 0, NULL, NULL);
     }
-    memcpy(mem4,mem5,sizeof(int)*mem4c);
-    free(mem5);
+    clEnqueueCopyBuffer(command_queue, mem5_obj, mem4_obj, 0, 0, sz, 0, NULL, NULL);
   }
-  free(*out3);
-  (*out3) = mem4;
+  *out3 = realloc(*out3, sz);
+  clEnqueueReadBuffer(command_queue, mem4_obj, CL_TRUE, 0, sz, *out3, 0, NULL, NULL);
+  clFinish(command_queue);
+
+  clReleaseMemObject(mem4_obj);
+  clReleaseMemObject(mem5_obj);
 }
 
 
@@ -158,11 +144,9 @@ int main (int argc, char *argv[]) {
   for(i = 0; i < arrSize; i++) {
     a[i] = i%4;
   }
-  int *res = NULL;
+  int * volatile res = NULL;
 
   /// Setup
-  cl_platform_id platform_id = NULL;
-  cl_device_id device_id = NULL;
   cl_uint ret_num_devices;
   cl_uint ret_num_platforms;
   clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
@@ -177,6 +161,13 @@ int main (int argc, char *argv[]) {
   double t1,t2;
   int const iter = 10;
   printf("Running test of size %d (%d iterations)\n", arrSize, iter);
+  printf("Before: ");
+  for (int i=0; i<min(arrSize,10); i++)
+  {
+    printf("%d ", a[i]);
+  }
+  printf("\n");
+
   for (int i=-2; i<iter; i++) // Negative i is warmup
   {
     if (i == 0)
@@ -187,6 +178,13 @@ int main (int argc, char *argv[]) {
   double nanos = (t2 - t1) * 1.0e9 / iter;
 
   outputMeasure("bitonicPIRE.log",nanos, arrSize);
+
+  printf("After:  ");
+  for (int i=0; i<min(arrSize,10); i++)
+  {
+    printf("%d ", res[i]);
+  }
+  printf("\n");
 
   /// Teardown
   teardown();

@@ -129,8 +129,8 @@ instance ( Compile dom dom
    --         = error "Sequential2"
 
   
-    compileExprSym (C' GetLength) _ (a :* Nil) m | [Index n is] <- compileExpr a m = [Index (n ++ "c") is] -- TODO: assumes a parameter is used.
-    compileExprSym (C' GetIx) _ (arr :* i :* Nil) m = [Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)]
+    compileExprSym (C' GetLength) _ (a :* Nil) m | [Index mem n is] <- compileExpr a m = [Index mem (n ++ "c") is] -- TODO: assumes a parameter is used.
+    compileExprSym (C' GetIx) _ (arr :* i :* Nil) m | [Index mem n is] <- compileExpr arr m = [Index mem n (compileExpr i m)]
     compileExprSym (C' SetIx) info args m = error "Array ExprSym1"
     compileExprSym (C' SetLength) info args m = error "Array ExprSym2"
     compileExprSym (C' Append) info args m = error "Array ExprSym3"
@@ -153,8 +153,8 @@ instance ( Compile dom dom
                sa = fst $ infoSize $ getInfo lam
                typ = compileTypeRep ta sa
                bound = (head $ compileExpr len m)
-               (Index name' _) = fst name
-           in maybe Skip (\f -> f [bound]) af
+               (Index _ name' _) = fst name
+           in maybe Skip (\f -> f DevGlobal [bound]) af -- XXXX
           .>> par (Num 0) bound $ \e -> 
                compileProgWithName (fst name, locArray (name') e) Nothing Nothing ixf 
                   (M.insert v e m)
@@ -171,7 +171,7 @@ instance ( Compile dom dom
               sa2  = fst $ infoSize $ getInfo lam2
               typ2 = compileTypeRep ta2 sa2
               bound = head $ compileExpr len m
-          in maybe Skip (\f -> f [bound]) af
+          in maybe Skip (\f -> f DevGlobal [bound]) af -- XXXX
          .>> Decl typ2 $ \stName -> compileProgWithName (var stName, loc stName) Nothing Nothing st m
          .>> loc stName (Num 0)
          .>> for (Num 0) bound $ \e -> compileProgWithName (var stName, locArray stName e) Nothing Nothing step 
@@ -179,11 +179,12 @@ instance ( Compile dom dom
          .>> snd name $ var stName
 
     compileProgBasic _ _ _ (C' SetLength) _ (len :* arr :* Nil) m = error "setLength basic"
-    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = let [Index n is] = compileExpr a m in snd name $  Index (n ++ "c") is
+    compileProgBasic name namec af (C' GetLength) _ (a :* Nil) m = let [Index mem n is] = compileExpr a m in snd name $  Index mem (n ++ "c") is
           --snd name $ head $ compileExpr a m
-    compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m = 
-      maybe Skip (\f -> f $ [Index ((nameFromVar $ head $ compileExpr arr m) ++ "c") []]) af .>> -- TODO causes memory leak
-      snd name $ Index (nameFromVar $ head $ compileExpr arr m) (compileExpr i m)
+    compileProgBasic name namec af (C' GetIx) _ (arr :* i :* Nil) m
+      | [Index mem n is] <- compileExpr arr m
+      = maybe Skip (\f -> f mem [Index Host (n ++ "c") []]) af .>> -- TODO causes memory leak -- XXXX
+        snd name $ Index mem n (compileExpr i m)
     compileProgBasic _ _ _ (C' SetIx) _ (arr :* i :* a :* Nil) m  = error "SetIx basic"
     compileProgBasic _ _ _ (C' Append) _ ((arr1 :$ l1 :$ (lam1 :$ body1)) :* (arr2 :$ l2 :$ (lam2 :$ body2)) :* Nil) m = error "Append basic"
     compileProgBasic _ _ _ (C' Append) _ (a :* b :* Nil) m = error "Append basic2"

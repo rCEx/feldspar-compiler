@@ -101,7 +101,7 @@ instance ( Compile dom dom
                sa3   = infoSize $ getInfo ixf
                typ3 = compileTypeRep ta3 sa3
           in --maybe Skip (\f -> f [bound]) af .>>
-            case typ3 of PIRE.TPointer _ ->  compileProgWithName out outc af init m .>>
+            case typ3 of PIRE.TPointer t ->  compileProgWithName out outc af init m .>>
                                              -- for (Num 0) bound $ \e -> 
                                              -- compileLets bs1
                                              --             (compileProgWithName out outc Nothing ixf)
@@ -113,18 +113,18 @@ instance ( Compile dom dom
                                               --loc temp (Index n xs) .>>
                                               for (Num 0) bound $ \e -> 
                                                compileLets bs1
-                                                           (compileProgWithName (var temp, memcpy (var temp) (var tempc) PIRE.TInt) (Just tempc) (Just tempAf) ixf)
+                                                           (compileProgWithName (glob temp, memcpy (glob temp) (var tempc) PIRE.TInt) (Just tempc) (Just tempAf) ixf)
                                                            (M.insert st (fst out) $ M.insert ix e m)
-                                               .>> memcpy (fst out) (var tempc) PIRE.TInt (var temp) 
-                                               .>> free (var temp)
+                                               .>> memcpy (fst out) (var tempc) t (glob temp) 
+                                               .>> free (glob temp)
                                                -- snd out (var temp)
 
 
                          _               -> compileProgWithName out outc af init m .>>
                                              Decl typ3 $ \temp -> let (Assign _ xs _) = snd out (undefined)
-                                                                      (Index n _)     = fst out
+                                                                      (Index mem n _) = fst out
                                                                   in 
-                                               loc temp (Index n xs) .>>
+                                               loc temp (Index mem n xs) .>>
                                                for (Num 0) bound (\e -> 
                                                compileLets bs1 
                                                            (compileProgWithName (var temp, loc temp) Nothing Nothing ixf)

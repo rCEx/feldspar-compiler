@@ -177,7 +177,7 @@ int main (int argc, char *argv[]) {
   t2 = getRealTime();
   double nanos = (t2 - t1) * 1.0e9 / iter;
 
-  outputMeasure("bitonicPIRE.log",nanos, arrSize);
+  outputMeasure("bitonicTweaked.log",nanos, arrSize);
 
   printf("After:  ");
   for (int i=0; i<min(arrSize,10); i++)

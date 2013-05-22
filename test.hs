@@ -37,4 +37,10 @@ parScan xs = sklansky (+) xs
 bitonicTest :: Data Index -> Vector1 Index -> Vector1 Index
 bitonicTest n xs = tsort n xs
 
+main = do
+    compile bitonicTest "examples/bitonic/pire/fun.c"
+    compile dotProd     "examples/dot/pire/fun.c"
+    compile parScan     "examples/scan/pire/fun.c"
+
+
 

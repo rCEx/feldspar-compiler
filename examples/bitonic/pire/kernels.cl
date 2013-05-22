@@ -1,9 +1,6 @@
-int testBit_fun_int32_t( int x, int i )
-{
-    return (x & 1 << i) != 0;
+int testBit_fun_int32_t( int x, int i ) {
+  return (x & 1 << i) != 0;
 }
-
-
 __kernel void k10( __global int* mem4, int mem7, __global int* mem9, int o ) {
   int tid = get_global_id(0);
   int localSize = get_local_size(0);

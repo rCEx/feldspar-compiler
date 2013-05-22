@@ -21,7 +21,7 @@ dotProd :: Vector1 Word32 -> Vector1 Word32 -> Vector1 Word32
 dotProd xs ys = parFold (+) $ zipWith (*) xs ys
 
 parFold :: (Syntax a, Num a) => (a -> a -> a) -> Vector a -> Vector a
-parFold f xs = forLoop (log2 (length xs) - 1) xs $ \i' acc -> let i = i' + 1 in indexed (length acc) $ \j -> condition 
+parFold f xs = forLoop (log2 (length xs)) xs $ \i' acc -> let i = i' + 1 in indexed (length acc) $ \j -> condition 
                                                                                           (j `mod` (2^i) == 0)
                                                                                           (f (acc ! j) 
                                                                                              (acc ! (j+(2^(i-1)))))

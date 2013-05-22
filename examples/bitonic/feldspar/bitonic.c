@@ -29,7 +29,7 @@ void f0(uint32_t v0, struct array * v1, struct array * * out)
   
   *out = initArray(*out, sizeof(uint32_t), getLength(v1));
   copyArray(*out, v1);
-  for (uint32_t v30 = 0; v30 < v0-1; v30 += 1)
+  for (uint32_t v30 = 0; v30 < v0; v30 += 1)
   {
     v55 = ~((4294967295 << (v30 + 1)));
     v56 = (v30 + 1);

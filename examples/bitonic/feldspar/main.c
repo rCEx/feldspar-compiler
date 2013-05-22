@@ -1,17 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
 #include <math.h>
 #include <time.h>
 #include "feldspar_c99.h"
+#include "feldspar_array.h"
 #include "bitonic.h"
 #define MAX_SOURCE_SIZE (0x100000)
 
+#ifdef __APPLE__
+#include <sys/time.h>
+double getRealTime() {
+  struct timeval tv;
+  gettimeofday(&tv,0);
+  return (double)tv.tv_sec+1.0e-6*(double)tv.tv_usec;
+}
+#else
+double getRealTime() {
+  struct timespec timer;
+  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer);
+  return (double)timer.tv_sec+1.0e-9*(double)timer.tv_nsec;
+}
+#endif
 
-void outputMeasure(char *to, long time, int size) {
+void outputMeasure(char *to, double time, int size) {
   FILE *fp = fopen(to, "a");
   if(fp != NULL) {
-    fprintf(fp, "%li %i\n", time, size);
+    fprintf(fp, "%lf %i\n", time, size);
   }
   fclose(fp);
 }
@@ -19,28 +38,49 @@ void outputMeasure(char *to, long time, int size) {
 
 
 int main (int argc, char *argv[]) {
-  const int size = atoi(argv[1]);
-  
+  const int arrSize = atoi(argv[1]);
+  const int size = (int) log2(arrSize); 
   
   struct array *a = NULL;
-  a = initArray(a, sizeof(int), size); 
+  a = initArray(a, sizeof(uint32_t), arrSize); 
 
-  int* buf = (int*) a->buffer;
-  for(int i = 0; i < size; i++) {
-    buf[i] = size-i;
+  for(int i = 0; i < arrSize; i++) {
+    at(uint32_t,a,i) = i%4;
   }
 
   struct array *res = NULL;
-  res = initArray(res, sizeof(int), size);
+  res = initArray(res, sizeof(uint32_t), arrSize);
 
-  struct timespec timer1;
-  struct timespec timer2;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
-  f0(log2(size), a, &res);
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
-  long nanos = timer2.tv_nsec - timer1.tv_nsec;
+  double t1,t2;
+  int const iter = 10;
+  printf("Running test of size %d (%d iterations)\n", arrSize, iter);
+  printf("Before: ");
+  for (int i=0; i<min(arrSize,10); i++)
+  {
+    printf("%d ", at(uint32_t,a,i));
+  }
+  printf("\n");
 
-  outputMeasure("bitonicFeldspar.log",nanos, size);
+  for (int i=-2; i<iter; i++) // Negative i is warmup
+  {
+    if (i == 0)
+      t1 = getRealTime();
+    f0(size, a, &res);
+  }
+  t2 = getRealTime();
+  double nanos = (t2 - t1) * 1.0e9 / iter;
+
+  outputMeasure("bitonicFeldspar.log",nanos, arrSize);
+
+  printf("After:  ");
+  for (int i=0; i<min(arrSize,10); i++)
+  {
+    printf("%d ", at(uint32_t,res,i));
+  }
+  printf("\n");
+
+  freeArray(a);
+  freeArray(res);
 
   return 0;
 }

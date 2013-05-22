@@ -83,7 +83,7 @@ type CodeWriter a = Alias -> Program a --M.Map VarId Name -> Proc () --RWS Reade
 
 type Alias = M.Map VarId Expr
 
-type AllocFun = Maybe (Dim -> Program ())
+type AllocFun = Maybe (Memory -> Dim -> Program ())
 
 ---- | A minimal complete instance has to define either 'compileProgSym' or
 ---- 'compileExprSym'.

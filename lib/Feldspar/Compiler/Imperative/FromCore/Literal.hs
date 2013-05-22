@@ -71,7 +71,7 @@ instance Compile (Literal :|| Core.Type) dom
     
     compileProgBasic name namec af (C' (Literal a)) info Nil m = 
       let x = literal (infoType info) (infoSize info) a in
-      maybe Skip (\f -> f x) af .>> snd name $ head $ x
+      maybe Skip (\f -> f Host x) af .>> snd name $ head $ x -- XXXX
     
 
 literal :: TypeRep a -> Core.Size a -> a -> [Expr]

@@ -22,7 +22,7 @@ step f l as = indexed (length as) $ \i ->
         $ (as!i)
 
 log2 :: Data Length -> Data Length
-log2 a = bitSize a - bitScan a
+log2 a = bitSize a - 1 - bitScan a
 
 sklansky :: Syntax a => (a -> a -> a) -> Vector a -> Vector a
 sklansky f a = forLoop (log2 (length a)) a (step f)

@@ -9,7 +9,7 @@ import Bitonic
 --import FFT.Pull
 
 import Feldspar.Compiler
-import Feldspar.Compiler.Imperative.FromCore
+--import Feldspar.Compiler.Imperative.FromCore
 
 import Debug.Trace
 

@@ -65,12 +65,13 @@ instance Compile (Core.Variable :|| Type) dom
     compileProgSym (C' (Core.Variable v)) info k Nil m = k $ \name -> loc name variable
       where variable = fromMaybe (error $ "Binding ProgSym: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
-    compileProgBasic name cname af (C' (Core.Variable v)) info Nil m = maybe Skip (\f -> f DevGlobal [case v' of -- XXXX
-                                                                                              Index m v is -> Index m (v ++ "c") is
-                                                                                              a            -> a
-                                                                                  ]) af .>>
+    compileProgBasic name cname af (C' (Core.Variable v)) info Nil m = --case mem of 
+                                                                       --   DevGlobal -> Skip
+                                                                       --   _         ->  
+                                                                       maybe Skip (\f -> f mem [Index mem (vname ++ "c") vis]) af
+                                                                       .>>
                                                                        snd name v'
-      where v'= fromMaybe (error $ "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
+      where v'@(Index mem vname vis) = fromMaybe (error $ "Binding ProgBasic: Could not find mapping in Alias for " ++ show v) $ M.lookup v m
 
 
 instance Compile (CLambda Type) dom
@@ -166,7 +167,7 @@ compileBinds k ((v, ASTB b):bs) ast m = let info = getInfo b
                                             typ  = compileTypeRep (infoType info) (infoSize info)
                                         in case typ of
                                             PIRE.TPointer t -> Alloc typ $ \n c af -> 
-                                                                compileProgWithName (glob n, memcpy (var n) (var c) t) (Just c) (Just af) b (M.insert v (var n) m)
+                                                                compileProgWithName (glob n, memcpy (glob n) (var c) t) (Just c) (Just af) b (M.insert v (var n) m)
                                                             .>> compileBinds k bs ast (M.insert v (var n) m)
                                                             .>> free (glob n)
                                             _               -> Decl typ $ \n -> 

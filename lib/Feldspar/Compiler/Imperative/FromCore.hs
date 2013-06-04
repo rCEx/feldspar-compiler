@@ -118,11 +118,11 @@ compileProgTop :: ( Compile dom dom
           ASTF (Decor Info dom) a -> CodeWriter ()
 compileProgTop bs (lam :$ body) m
     | Just (SubConstr2 (Lambda v)) <- prjLambda lam
-    = do let ta  = argType $ infoType $ getInfo lam
-             sa  = fst $ infoSize $ getInfo lam
-             typ = compileTypeRep ta sa
-             typStripped = case typ of PIRE.TPointer t -> t; t -> t
-         InParam typ $ \mem name -> case mem of  --FIXME case on typ to be Pointer, Not scalar!
+    = let ta  = argType $ infoType $ getInfo lam
+          sa  = fst $ infoSize $ getInfo lam
+          typ = compileTypeRep ta sa
+          typStripped = case typ of PIRE.TPointer t -> t; t -> t
+      in InParam typ $ \mem name -> case mem of  --FIXME case on typ to be Pointer, Not scalar!
                                       Host      -> compileProgTop bs body (M.insert v (var name) m)
                                       DevGlobal -> Alloc typ $ \name' namec' af -> af mem [var $ name ++ "c"] .>>
                                                     memcpy (glob name') (var namec') typStripped (var name) .>>

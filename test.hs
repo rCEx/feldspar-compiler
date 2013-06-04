@@ -14,7 +14,7 @@ import Feldspar.Compiler
 import Debug.Trace
 
 {- dotProd returns a vector and not a scalar. We are really only
- - interested in the first element. Why could prepend a 'head' call, but taking
+ - interested in the first element. We could prepend a 'head' call, but taking
  - the first element of a for-loop doesn't play nice with PIRE currently.  
  -}
 dotProd :: Vector1 Word32 -> Vector1 Word32 -> Vector1 Word32

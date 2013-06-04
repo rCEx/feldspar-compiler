@@ -121,12 +121,11 @@ compileProgTop bs (lam :$ body) m
     = let ta  = argType $ infoType $ getInfo lam
           sa  = fst $ infoSize $ getInfo lam
           typ = compileTypeRep ta sa
-          typStripped = case typ of PIRE.TPointer t -> t; t -> t
       in InParam typ $ \mem name -> case typ of
                                       PIRE.TPointer t -> case mem of  --FIXME case on typ to be Pointer, Not scalar!
                                                             Host      -> compileProgTop bs body (M.insert v (var name) m)
                                                             DevGlobal -> Alloc typ $ \name' namec' af -> af mem [var $ name ++ "c"] .>>
-                                                                          memcpy (glob name') (var namec') typStripped (var name) .>>
+                                                                          memcpy (glob name') (var namec') t (var name) .>>
                                                                           compileProgTop bs body (M.insert v (glob name') m)
                                       _           -> compileProgTop bs body (M.insert v (var name) m)
                                      

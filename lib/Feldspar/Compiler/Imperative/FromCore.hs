@@ -126,7 +126,8 @@ compileProgTop bs (lam :$ body) m
                                                             Host      -> compileProgTop bs body (M.insert v (var name) m)
                                                             DevGlobal -> Alloc typ $ \name' namec' af -> af mem [var $ name ++ "c"] .>>
                                                                           memcpy (glob name') (var namec') t (var name) .>>
-                                                                          compileProgTop bs body (M.insert v (glob name') m)
+                                                                          compileProgTop bs body (M.insert v (glob name') m) .>>
+                                                                          free (glob name')
                                       _           -> compileProgTop bs body (M.insert v (var name) m)
                                      
 compileProgTop bs (lt :$ e :$ (lam :$ body)) m

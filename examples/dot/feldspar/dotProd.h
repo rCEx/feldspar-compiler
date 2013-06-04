@@ -1,4 +1,4 @@
-#ifndef DOTPROD_H
+#ifndef DOTPROD_H 
 #define DOTPROD_H
 
 #include "feldspar_c99.h"
@@ -15,4 +15,4 @@
 
 void f0(struct array * v0, struct array * v1, struct array * * out);
 
-#endif // DOTPROD_H
+#endif // _HOME_IVAR_PIRE_FELDSPAR-COMPILER_EXAMPLES_DOT_FELDSPAR_DOTPROD_H

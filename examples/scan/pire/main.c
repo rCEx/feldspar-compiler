@@ -74,24 +74,3 @@ int main (int argc, char *argv[]) {
 
 
 
-
-//int main (int argc, char *argv[]) {
-//  const int size = atoi(argv[1]);
-//  int *a = (int*) malloc(sizeof(int)*size);
-//  int i;
-//  for(i = 0; i < size; i++) {
-//    a[i] = i%4;
-//  }
-//  int *res;
-//
-//  struct timespec timer1;
-//  struct timespec timer2;
-//  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer1);
-//  f0(a, size, &res);
-//  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timer2);
-//  long nanos = timer2.tv_nsec - timer1.tv_nsec;
-//
-//  outputMeasure("scanPIRE.log",nanos, size);
-//  printf("%i : res \n", res[size-1]);
-//  return 0;
-//}

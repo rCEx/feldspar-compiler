@@ -99,28 +99,18 @@ instance ( Compile dom dom
                bound = head $ compileExpr len m
                ta3   = infoType $ getInfo ixf
                sa3   = infoSize $ getInfo ixf
-               typ3 = compileTypeRep ta3 sa3
+               typ3  = compileTypeRep ta3 sa3
                alias f = case fst out of 
-                           (Index DevGlobal n _) -> f n (fromJust outc) (\_ _ -> Skip)--(fromJust af)
+                           (Index DevGlobal n _) -> f n (fromJust outc) (\_ _ -> Skip)
                            _                     -> Alloc typ3 f
-          in --maybe Skip (\f -> f [bound]) af .>>
+          in
             case typ3 of PIRE.TPointer t ->  compileProgWithName out outc af init m .>>
-                                             -- for (Num 0) bound $ \e -> 
-                                             -- compileLets bs1
-                                             --             (compileProgWithName out outc Nothing ixf)
-                                             --             (M.insert st (fst out) $ M.insert ix e m)
-
-                                             alias $ \temp tempc tempAf -> --let (Assign _ xs _) = snd out undefined
-                                                                                 --    (Index n _)     = fst out
-                                                                                 --in
-                                              --loc temp (Index n xs) .>>
+                                             alias $ \temp tempc tempAf -> 
                                               for (Num 0) bound $ \e -> 
                                                compileLets bs1
                                                            (compileProgWithName (glob temp, memcpy (glob temp) (var tempc) PIRE.TInt) (Just tempc) (Just tempAf) ixf)
                                                            (M.insert st (fst out) $ M.insert ix e m)
                                                .>> memcpy (fst out) (var tempc) t (glob temp) 
-                                               .>> free (glob temp)
-                                               -- snd out (var temp)
 
 
                          _               -> compileProgWithName out outc af init m .>>

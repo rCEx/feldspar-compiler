@@ -52,24 +52,23 @@ void init() {
   k6 = clCreateKernel(program, "k6", NULL);
 
 }
-void f0(int* arg1, int arg1c, int** out2) {
-  int mem3c;
-  mem3c = arg1c;
-  cl_mem mem3 = clCreateBuffer(context,CL_MEM_READ_WRITE,(mem3c * sizeof(int)),NULL,NULL);
-  clEnqueueWriteBuffer(command_queue,mem3,CL_TRUE,0,(mem3c * sizeof(int)),arg1,0,NULL,NULL);
+void f0(int* arg1, int arg1c, int** out3) {
+  int mem2c;
+  mem2c = arg1c;
+  cl_mem mem2 = clCreateBuffer(context,CL_MEM_READ_WRITE,(mem2c * sizeof(int)),NULL,NULL);
+  clEnqueueWriteBuffer(command_queue,mem2,CL_TRUE,0,(mem2c * sizeof(int)),arg1,0,NULL,NULL);
   int mem4c;
-  for(int n = 0; n < (31 - bitScan_fun_int32_t(arg1c)); n++) {
-    mem4c = mem3c;
-    cl_mem mem4 = clCreateBuffer(context,CL_MEM_READ_WRITE,(mem4c * sizeof(int)),NULL,NULL);
+  mem4c = mem2c;
+  cl_mem mem4 = clCreateBuffer(context,CL_MEM_READ_WRITE,(mem4c * sizeof(int)),NULL,NULL);
+  clEnqueueCopyBuffer(command_queue,mem2,mem4,0,0,(mem4c * sizeof(int)),0,NULL,NULL);
+  for(int n = 0; n < (31 - bitScan_fun_int32_t(mem2c)); n++) {
     clSetKernelArg(k6, 0, sizeof(int), &n);
-    clSetKernelArg(k6, 1, sizeof(cl_mem), &mem3);
-    clSetKernelArg(k6, 2, sizeof(cl_mem), &mem4);
-    size_t global_item_size = mem3c;
+    clSetKernelArg(k6, 1, sizeof(cl_mem), &mem4);
+    size_t global_item_size = mem4c;
     size_t local_item_size = 1024;
     clEnqueueNDRangeKernel(command_queue, k6, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-    clEnqueueCopyBuffer(command_queue,mem4,mem3,0,0,(mem4c * sizeof(int)),0,NULL,NULL);
-    clReleaseMemObject(mem4);
   }
-  clEnqueueReadBuffer(command_queue,mem3,CL_TRUE,0,(mem3c * sizeof(int)),(*out2),0,NULL,NULL);
-  clReleaseMemObject(mem3);
+  clEnqueueReadBuffer(command_queue,mem4,CL_TRUE,0,(mem4c * sizeof(int)),(*out3),0,NULL,NULL);
+  clReleaseMemObject(mem4);
+  clReleaseMemObject(mem2);
 }

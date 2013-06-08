@@ -74,7 +74,7 @@ void f0(int* arg1, int arg1c, int* arg3, int arg3c, int** out6) {
   size_t global_item_size = mem5;
   size_t local_item_size = 1024;
   clEnqueueNDRangeKernel(command_queue, k8, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-  for(int r = 0; r < (31 - bitScan_fun_int32_t(mem5)); r++) {
+  for(int r = 0; r < (31 - bitScan_fun_int32_t(mem5) - 1); r++) {
     int mem10;
     mem10 = pow(2,(r + 1));
     int mem11;

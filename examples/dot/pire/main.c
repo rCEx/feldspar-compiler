@@ -42,7 +42,7 @@ int main (int argc, char *argv[]) {
   int const iter = 10;
   printf("Running test of size %d (%d iterations)\n", arrSize, iter);
   printf("Before: ");
-  for (int i=9; i<min(arrSize,10); i++)
+  for (int i=0; i<min(arrSize,10); i++)
   {
     printf("%d ", a[i]);
     printf("%d ", b[i]);

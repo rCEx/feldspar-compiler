@@ -76,7 +76,7 @@ void f0(int arg1, int* arg2, int arg2c, int** out4) {
     clSetKernelArg(k10, 2, sizeof(cl_mem), &mem9);
     clSetKernelArg(k10, 3, sizeof(int), &o);
     size_t global_item_size = mem5c;
-    size_t local_item_size = 1;
+    size_t local_item_size = 1024;
     clEnqueueNDRangeKernel(command_queue, k10, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     clEnqueueCopyBuffer(command_queue,mem9,mem5,0,0,(mem5c * sizeof(int)),0,NULL,NULL);
     for(int v = 0; v < o; v++) {
@@ -88,7 +88,7 @@ void f0(int arg1, int* arg2, int arg2c, int** out4) {
       clSetKernelArg(k16, 1, sizeof(int), &mem15);
       clSetKernelArg(k16, 2, sizeof(int), &mem14);
       global_item_size = mem5c;
-      local_item_size = 1;
+      local_item_size = 1024;
       clEnqueueNDRangeKernel(command_queue, k16, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     }
     clReleaseMemObject(mem9);

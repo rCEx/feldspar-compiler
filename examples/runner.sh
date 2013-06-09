@@ -1,12 +1,3 @@
-./a.out 2
-./a.out 4
-./a.out 8
-./a.out 16
-./a.out 32
-./a.out 64
-./a.out 128
-./a.out 256
-./a.out 512
 ./a.out 1024
 ./a.out 2048
 ./a.out 4096

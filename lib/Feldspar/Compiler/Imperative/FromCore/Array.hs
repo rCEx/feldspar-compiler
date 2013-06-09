@@ -157,7 +157,7 @@ instance ( Compile dom dom
            in maybe Skip (\f -> f DevGlobal [bound]) af -- XXXX
           .>> par (Num 0) bound $ \e -> 
                compileProgWithName (fst name, locArray (name') e) Nothing Nothing ixf 
-                  (M.insert v e m)
+                (M.insert v e m)
 
 
     compileProgBasic name namec af (C' Sequential) _ (len :* st :* (lam1 :$ lt1) :* Nil) m

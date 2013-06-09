@@ -27,3 +27,8 @@ set title "scan (EC2)"
 plot "ec2/scan/feldspar/scanFeldspar.log" using (lg($2)):($1/1e6) title 'Feldspar -O3' with linespoints,\
      "ec2/scan/pire/scanPIRE.log"         using (lg($2)):($1/1e6) title 'PIRE -O3'     with linespoints,\
      "ec2/scan/ref.log"                   using (lg($2)):1        title 'NVIDIA'       with linespoints
+
+set title "dot (EC2)"
+plot "ec2/dot/feldspar/dotFeldspar.log" using (lg($2)):($1/1e6) title 'Feldspar -O3' with linespoints,\
+     "ec2/dot/pire/dotPIRE.log"         using (lg($2)):($1/1e6) title 'PIRE -O3'     with linespoints,\
+     "ec2/dot/ref.log"                   using (lg($2)):1        title 'NVIDIA'       with linespoints
